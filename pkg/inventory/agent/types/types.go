@@ -8,28 +8,25 @@ const (
 
 	// FunctionType will be as default qdsl to function
 	FunctionType = FunctionPath
-	Description  = "inventory-bmc init function"
+	Description  = "inventory redfish function"
 )
 
 const (
-	BmcContainerID      = "types/bmc-container"
 	FunctionContainerID = "types/function-container"
 	FunctionID          = "types/function"
 
 	RootID = "system/root"
+)
+
+const (
+	FunctionContainerLink = "redfish"
+	FunctionLink          = "inventory"
 
 	RedfishDeviceKey = "redfish-device"
 )
 
 const (
-	BmcContainerLink      = "bmc"
-	FunctionContainerLink = "inventory-bmc"
-	FunctionLink          = "init"
-)
-
-const (
-	BmcContainerPath      = "bmc.root"
 	FunctionsPath         = "functions.root"
-	FunctionContainerPath = "inventory-bmc.functions.root"
-	FunctionPath          = "init.inventory-bmc.functions.root"
+	FunctionContainerPath = "redfish.functions.root"
+	FunctionPath          = "inventory.redfish.functions.root"
 )
