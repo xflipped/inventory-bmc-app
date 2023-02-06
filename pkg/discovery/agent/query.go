@@ -10,7 +10,6 @@ import (
 )
 
 func (a *Agent) getDocument(query string) (document *documents.Node, err error) {
-	log.Infof("qdsl (%s)", query)
 	documents, err := qdsl.Qdsl(a.ctx, query, qdsl.WithKey(), qdsl.WithId())
 	if err != nil {
 		return

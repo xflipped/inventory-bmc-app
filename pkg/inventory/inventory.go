@@ -30,6 +30,9 @@ func init() {
 			Name:        "run",
 			Description: "Run inventory",
 			Action: func(ctx *cli.Context) (err error) {
+				if err = bootstrap.Run(); err != nil {
+					return
+				}
 				return agent.Run()
 			},
 		},

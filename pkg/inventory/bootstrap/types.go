@@ -10,18 +10,21 @@ import (
 	"git.fg-tech.ru/listware/cmdb/pkg/cmdb/vertex/types"
 	"git.fg-tech.ru/listware/go-core/pkg/client/system"
 	"git.fg-tech.ru/listware/proto/sdk/pbcmdb"
+	"github.com/stmcginnis/gofish"
+	"github.com/stmcginnis/gofish/redfish"
 )
 
 var (
 	registerTypes = []*pbcmdb.RegisterTypeMessage{}
 )
 
-func createTypes(ctx context.Context) (err error) {
-	if err = createBmcContainerType(ctx); err != nil {
-		return
-	}
+// FIXME will be custom structs?
+type RedfishService struct {
+	*gofish.Service
+}
 
-	return
+type RedfishSystem struct {
+	*redfish.ComputerSystem
 }
 
 func createType(ctx context.Context, pt *types.Type) (err error) {
@@ -45,7 +48,22 @@ func createType(ctx context.Context, pt *types.Type) (err error) {
 	return
 }
 
-func createBmcContainerType(ctx context.Context) (err error) {
-	pt := types.ReflectType(&BmcContainer{})
+func createRedfishServiceType(ctx context.Context) (err error) {
+	pt := types.ReflectType(&RedfishService{})
 	return createType(ctx, pt)
+}
+
+func createRedfishSystemType(ctx context.Context) (err error) {
+	pt := types.ReflectType(&RedfishSystem{})
+	return createType(ctx, pt)
+}
+
+func createTypes(ctx context.Context) (err error) {
+	if err = createRedfishServiceType(ctx); err != nil {
+		return
+	}
+	if err = createRedfishSystemType(ctx); err != nil {
+		return
+	}
+	return
 }

@@ -56,11 +56,6 @@ func (a *Agent) run() (err error) {
 		return
 	}
 
-	// // TODO move to another app
-	// if err = a.m.Bind("monit", monit.Monit); err != nil {
-	// 	return
-	// }
-
 	ctx, cancel := context.WithCancel(a.ctx)
 
 	go func() {

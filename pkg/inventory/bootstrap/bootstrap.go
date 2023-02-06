@@ -21,12 +21,6 @@ func register(ctx context.Context, exec executor.Executor) (err error) {
 		return
 	}
 
-	// example of trigger between types, not used in inventory
-	// create links
-	// if err = createLinks(ctx); err != nil {
-	// 	return
-	// }
-
 	message, err := system.Register(types.App, registerTypes, registerObjects, nil)
 	if err != nil {
 		return
@@ -36,17 +30,10 @@ func register(ctx context.Context, exec executor.Executor) (err error) {
 }
 
 func Run() (err error) {
-	ctx := context.Background()
-
 	exec, err := executor.New()
 	if err != nil {
 		return
 	}
 	defer exec.Close()
-
-	if err = register(ctx, exec); err != nil {
-		return
-	}
-
-	return
+	return register(context.Background(), exec)
 }
