@@ -11,6 +11,7 @@ import (
 	"git.fg-tech.ru/listware/go-core/pkg/client/system"
 	"git.fg-tech.ru/listware/proto/sdk/pbcmdb"
 	"github.com/stmcginnis/gofish"
+	"github.com/stmcginnis/gofish/common"
 	"github.com/stmcginnis/gofish/redfish"
 )
 
@@ -25,6 +26,14 @@ type RedfishService struct {
 
 type RedfishSystem struct {
 	*redfish.ComputerSystem
+}
+
+type RedfishBios struct {
+	*redfish.Bios
+}
+
+type RedfishLed struct {
+	Led common.IndicatorLED `json:"led"`
 }
 
 func createType(ctx context.Context, pt *types.Type) (err error) {
@@ -58,11 +67,27 @@ func createRedfishSystemType(ctx context.Context) (err error) {
 	return createType(ctx, pt)
 }
 
+func createRedfishBiosType(ctx context.Context) (err error) {
+	pt := types.ReflectType(&RedfishBios{})
+	return createType(ctx, pt)
+}
+
+func createRedfishLedType(ctx context.Context) (err error) {
+	pt := types.ReflectType(&RedfishLed{})
+	return createType(ctx, pt)
+}
+
 func createTypes(ctx context.Context) (err error) {
 	if err = createRedfishServiceType(ctx); err != nil {
 		return
 	}
 	if err = createRedfishSystemType(ctx); err != nil {
+		return
+	}
+	if err = createRedfishBiosType(ctx); err != nil {
+		return
+	}
+	if err = createRedfishLedType(ctx); err != nil {
 		return
 	}
 	return
