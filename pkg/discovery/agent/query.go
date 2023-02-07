@@ -9,8 +9,9 @@ import (
 	"git.fg-tech.ru/listware/cmdb/pkg/cmdb/qdsl"
 )
 
-func (a *Agent) getDocument(query string) (document *documents.Node, err error) {
-	documents, err := qdsl.Qdsl(a.ctx, query, qdsl.WithKey(), qdsl.WithId())
+func (a *Agent) getDocument(format string, args ...any) (document *documents.Node, err error) {
+	query := fmt.Sprintf(format, args...)
+	documents, err := qdsl.Qdsl(a.ctx, query, qdsl.WithKey(), qdsl.WithId(), qdsl.WithType())
 	if err != nil {
 		return
 	}
