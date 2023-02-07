@@ -4,6 +4,7 @@ package bootstrap
 
 import (
 	"context"
+	"time"
 
 	"git.fg-tech.ru/listware/go-core/pkg/client/system"
 	"git.fg-tech.ru/listware/go-core/pkg/executor"
@@ -30,7 +31,7 @@ func register(ctx context.Context, exec executor.Executor) (err error) {
 }
 
 func Run() (err error) {
-	exec, err := executor.New()
+	exec, err := executor.New(executor.WithTimeout(time.Second * 30))
 	if err != nil {
 		return
 	}

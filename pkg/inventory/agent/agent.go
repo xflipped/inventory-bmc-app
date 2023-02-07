@@ -68,10 +68,6 @@ func (a *Agent) run() (err error) {
 
 	}()
 
-	if err = a.entrypoint(); err != nil {
-		return
-	}
-
 	<-ctx.Done()
 
 	return
