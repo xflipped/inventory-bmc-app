@@ -10,10 +10,10 @@ import (
 )
 
 type RedfishDevice struct {
-	Description Description `json:"description"`
-	Api         string      `json:"api"`
-	Login       string      `json:"login"`
-	Password    string      `json:"password"`
+	Description Description `json:"description,omitempty"`
+	Api         string      `json:"api,omitempty"`
+	Login       string      `json:"login,omitempty"`
+	Password    string      `json:"password,omitempty"`
 }
 
 func (s RedfishDevice) UUID() string {
