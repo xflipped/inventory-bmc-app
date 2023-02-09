@@ -379,9 +379,12 @@ func (a *Agent) createOrUpdatePCIeDeviceStatus(ctx module.Context, redfishDevice
 		}
 	}
 
-	if err = a.executor.ExecAsync(ctx, functionContext); err != nil {
+	msg, err := module.ToMessage(functionContext)
+	if err != nil {
 		return
 	}
+
+	ctx.Send(msg)
 
 	return a.createOrUpdatePCIeDeviceInterface(ctx, redfishDevice, computerSystem, deviceLink, device)
 }
@@ -407,9 +410,12 @@ func (a *Agent) createOrUpdatePCIeDeviceInterface(ctx module.Context, redfishDev
 		}
 	}
 
-	if err = a.executor.ExecAsync(ctx, functionContext); err != nil {
+	msg, err := module.ToMessage(functionContext)
+	if err != nil {
 		return
 	}
+
+	ctx.Send(msg)
 
 	return
 }
@@ -454,7 +460,9 @@ func (a *Agent) createOrUpdateChasseez(ctx module.Context, redfishDevice device.
 			return
 		}
 	}
-	return
+
+	// create/update managers
+	return a.createOrUpdateManagers(ctx, redfishDevice, service)
 }
 
 // TODO: check Chassis & RedfishDevice UUID
@@ -590,9 +598,12 @@ func (a *Agent) createOrUpdateThermalTemperatureStatus(ctx module.Context, redfi
 		}
 	}
 
-	if err = a.executor.ExecAsync(ctx, functionContext); err != nil {
+	msg, err := module.ToMessage(functionContext)
+	if err != nil {
 		return
 	}
+
+	ctx.Send(msg)
 
 	return
 }
@@ -708,14 +719,18 @@ func (a *Agent) createOrUpdatePowerIndicatorLED(ctx module.Context, redfishDevic
 		}
 	}
 
-	if err = a.executor.ExecAsync(ctx, functionContext); err != nil {
+	msg, err := module.ToMessage(functionContext)
+	if err != nil {
 		return
 	}
+
+	ctx.Send(msg)
 
 	return
 }
 
 // TODO: unique link
+// TODO: device with Id is present ? create : ignore
 func (a *Agent) createOrUpdatePowerControl(ctx module.Context, redfishDevice device.RedfishDevice, chassis *redfish.Chassis, parentNode *documents.Node, rfPowerControl *redfish.PowerControl) (err error) {
 	powerControlLink := fmt.Sprintf("pcontrol%s", strings.ToLower(rfPowerControl.MemberID))
 	powerControl := &bootstrap.RedfishPowerControl{PowerControl: rfPowerControl}
@@ -734,14 +749,18 @@ func (a *Agent) createOrUpdatePowerControl(ctx module.Context, redfishDevice dev
 		}
 	}
 
-	if err = a.executor.ExecAsync(ctx, functionContext); err != nil {
+	msg, err := module.ToMessage(functionContext)
+	if err != nil {
 		return
 	}
+
+	ctx.Send(msg)
 
 	return
 }
 
 // TODO: unique link
+// TODO: device with Id is present ? create : ignore
 func (a *Agent) createOrUpdatePowerSupply(ctx module.Context, redfishDevice device.RedfishDevice, chassis *redfish.Chassis, parentNode *documents.Node, rfPowerSupply *redfish.PowerSupply) (err error) {
 	powerSupplyLink := fmt.Sprintf("psupply%s", strings.ToLower(rfPowerSupply.MemberID))
 	powerSupply := &bootstrap.RedfishPowerSupply{PowerSupply: rfPowerSupply}
@@ -760,14 +779,18 @@ func (a *Agent) createOrUpdatePowerSupply(ctx module.Context, redfishDevice devi
 		}
 	}
 
-	if err = a.executor.ExecAsync(ctx, functionContext); err != nil {
+	msg, err := module.ToMessage(functionContext)
+	if err != nil {
 		return
 	}
+
+	ctx.Send(msg)
 
 	return
 }
 
 // TODO: unique link
+// TODO: device with Id is present ? create : ignore
 func (a *Agent) createOrUpdateVoltage(ctx module.Context, redfishDevice device.RedfishDevice, chassis *redfish.Chassis, parentNode *documents.Node, rfVoltage *redfish.Voltage) (err error) {
 	voltageLink := strings.ToLower(rfVoltage.MemberID)
 	voltage := &bootstrap.RedfishVoltage{Voltage: rfVoltage}
@@ -786,9 +809,242 @@ func (a *Agent) createOrUpdateVoltage(ctx module.Context, redfishDevice device.R
 		}
 	}
 
-	if err = a.executor.ExecAsync(ctx, functionContext); err != nil {
+	msg, err := module.ToMessage(functionContext)
+	if err != nil {
 		return
 	}
+
+	ctx.Send(msg)
+
+	return
+}
+
+func (a *Agent) createOrUpdateManagers(ctx module.Context, redfishDevice device.RedfishDevice, service *gofish.Service) (err error) {
+	parentNode, err := a.getDocument("service.%s.redfish-devices.root", redfishDevice.UUID())
+	if err != nil {
+		return
+	}
+
+	managers, err := service.Managers()
+	if err != nil {
+		return
+	}
+
+	for _, manager := range managers {
+		if err = a.createOrUpdateManager(ctx, redfishDevice, parentNode, manager); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+func (a *Agent) createOrUpdateManager(ctx module.Context, redfishDevice device.RedfishDevice, parentNode *documents.Node, manager *redfish.Manager) (err error) {
+	var functionContext *pbtypes.FunctionContext
+	managerLink := fmt.Sprintf("mng-%s", manager.UUID)
+
+	document, err := a.getDocument("mng-%s.service.%s.redfish-devices.root", manager.UUID, redfishDevice.UUID())
+	if err != nil {
+		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-manager", managerLink, manager)
+		if err != nil {
+			return err
+		}
+	} else {
+		functionContext, err = system.UpdateObject(document.Id.String(), managerLink)
+		if err != nil {
+			return err
+		}
+	}
+
+	if err = a.executor.ExecSync(ctx, functionContext); err != nil {
+		return
+	}
+
+	return a.createOrUpdateManagerCommandShell(ctx, redfishDevice, manager)
+}
+
+func (a *Agent) createOrUpdateManagerCommandShell(ctx module.Context, redfishDevice device.RedfishDevice, manager *redfish.Manager) (err error) {
+	cmdShell := &bootstrap.RedfishCommandShell{CommandShell: &manager.CommandShell}
+
+	parentNode, err := a.getDocument("mng-%s.service.%s.redfish-devices.root", manager.UUID, redfishDevice.UUID())
+	if err != nil {
+		return
+	}
+
+	var functionContext *pbtypes.FunctionContext
+	document, err := a.getDocument("command-shell.mng-%s.service.%s.redfish-devices.root", manager.UUID, redfishDevice.UUID())
+	if err != nil {
+		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-command-shell", "command-shell", cmdShell)
+		if err != nil {
+			return err
+		}
+	} else {
+		functionContext, err = system.UpdateObject(document.Id.String(), cmdShell)
+		if err != nil {
+			return err
+		}
+	}
+
+	msg, err := module.ToMessage(functionContext)
+	if err != nil {
+		return
+	}
+
+	ctx.Send(msg)
+
+	return a.createOrUpdateEthernetInterfaces(ctx, redfishDevice, manager)
+}
+
+func (a *Agent) createOrUpdateEthernetInterfaces(ctx module.Context, redfishDevice device.RedfishDevice, manager *redfish.Manager) (err error) {
+	parentNode, err := a.getDocument("mng-%s.service.%s.redfish-devices.root", manager.UUID, redfishDevice.UUID())
+	if err != nil {
+		return
+	}
+
+	ifaces, err := manager.EthernetInterfaces()
+	if err != nil {
+		return
+	}
+
+	for _, iface := range ifaces {
+		if err = a.createOrUpdateEthernetInterface(ctx, redfishDevice, parentNode, manager, iface); err != nil {
+			return
+		}
+	}
+	return
+}
+
+func (a *Agent) createOrUpdateEthernetInterface(ctx module.Context, redfishDevice device.RedfishDevice, parentNode *documents.Node, manager *redfish.Manager, rfIface *redfish.EthernetInterface) (err error) {
+	ifaceLink := strings.ToLower(rfIface.ID)
+	iface := &bootstrap.RedfishEthernetInterface{EthernetInterface: rfIface}
+
+	var functionContext *pbtypes.FunctionContext
+	document, err := a.getDocument("%s.mng-%s.service.%s.redfish-devices.root", ifaceLink, manager.UUID, redfishDevice.UUID())
+	if err != nil {
+		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-ethernet-interface", ifaceLink, iface)
+		if err != nil {
+			return err
+		}
+	} else {
+		functionContext, err = system.UpdateObject(document.Id.String(), iface)
+		if err != nil {
+			return err
+		}
+	}
+
+	msg, err := module.ToMessage(functionContext)
+	if err != nil {
+		return
+	}
+
+	ctx.Send(msg)
+
+	return a.createOrUpdateHostInterfaces(ctx, redfishDevice, manager)
+}
+
+func (a *Agent) createOrUpdateHostInterfaces(ctx module.Context, redfishDevice device.RedfishDevice, manager *redfish.Manager) (err error) {
+	parentNode, err := a.getDocument("mng-%s.service.%s.redfish-devices.root", manager.UUID, redfishDevice.UUID())
+	if err != nil {
+		return
+	}
+
+	ifaces, err := manager.HostInterfaces()
+	if err != nil {
+		return
+	}
+
+	for _, iface := range ifaces {
+		if err = a.createOrUpdateHostInterface(ctx, redfishDevice, parentNode, manager, iface); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+func (a *Agent) createOrUpdateHostInterface(ctx module.Context, redfishDevice device.RedfishDevice, parentNode *documents.Node, manager *redfish.Manager, rfIface *redfish.HostInterface) (err error) {
+	ifaceLink := fmt.Sprintf("host-ifs-%s", strings.ToLower(rfIface.ID))
+	iface := &bootstrap.RedfishHostInterface{HostInterface: rfIface}
+
+	var functionContext *pbtypes.FunctionContext
+	document, err := a.getDocument("%s.mng-%s.service.%s.redfish-devices.root", ifaceLink, manager.UUID, redfishDevice.UUID())
+	if err != nil {
+		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-host-interface", ifaceLink, iface)
+		if err != nil {
+			return err
+		}
+	} else {
+		functionContext, err = system.UpdateObject(document.Id.String(), iface)
+		if err != nil {
+			return err
+		}
+	}
+
+	if err = a.executor.ExecSync(ctx, functionContext); err != nil {
+		return
+	}
+
+	return a.createOrUpdateHostInterfaceStatus(ctx, redfishDevice, manager, ifaceLink, rfIface)
+}
+
+func (a *Agent) createOrUpdateHostInterfaceStatus(ctx module.Context, redfishDevice device.RedfishDevice, manager *redfish.Manager, ifaceLink string, iface *redfish.HostInterface) (err error) {
+	status := &bootstrap.RedfishStatus{Status: iface.Status}
+	parentNode, err := a.getDocument("%s.mng-%s.service.%s.redfish-devices.root", ifaceLink, manager.UUID, redfishDevice.UUID())
+	if err != nil {
+		return
+	}
+
+	var functionContext *pbtypes.FunctionContext
+	document, err := a.getDocument("status.%s.mng-%s.service.%s.redfish-devices.root", ifaceLink, manager.UUID, redfishDevice.UUID())
+	if err != nil {
+		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-status", "status", status)
+		if err != nil {
+			return err
+		}
+	} else {
+		functionContext, err = system.UpdateObject(document.Id.String(), status)
+		if err != nil {
+			return err
+		}
+	}
+
+	msg, err := module.ToMessage(functionContext)
+	if err != nil {
+		return
+	}
+
+	ctx.Send(msg)
+
+	return a.createOrUpdateHostInterfaceType(ctx, redfishDevice, manager, ifaceLink, iface)
+}
+
+func (a *Agent) createOrUpdateHostInterfaceType(ctx module.Context, redfishDevice device.RedfishDevice, manager *redfish.Manager, ifaceLink string, iface *redfish.HostInterface) (err error) {
+	ifaceType := &bootstrap.RedfishHostInterfaceType{HostInterfaceType: &iface.HostInterfaceType}
+	parentNode, err := a.getDocument("%s.mng-%s.service.%s.redfish-devices.root", ifaceLink, manager.UUID, redfishDevice.UUID())
+	if err != nil {
+		return
+	}
+
+	var functionContext *pbtypes.FunctionContext
+	document, err := a.getDocument("type.%s.mng-%s.service.%s.redfish-devices.root", ifaceLink, manager.UUID, redfishDevice.UUID())
+	if err != nil {
+		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-host-interface-type", "type", ifaceType)
+		if err != nil {
+			return err
+		}
+	} else {
+		functionContext, err = system.UpdateObject(document.Id.String(), ifaceType)
+		if err != nil {
+			return err
+		}
+	}
+
+	msg, err := module.ToMessage(functionContext)
+	if err != nil {
+		return
+	}
+
+	ctx.Send(msg)
 
 	return
 }

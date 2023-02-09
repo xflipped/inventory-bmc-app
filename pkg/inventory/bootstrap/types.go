@@ -25,13 +25,17 @@ type RedfishService struct {
 	*gofish.Service
 }
 
-// Core structs - system, chassis
+// Core structs - system, chassis, manager
 type RedfishSystem struct {
 	*redfish.ComputerSystem
 }
 
 type RedfishChassis struct {
 	*redfish.Chassis
+}
+
+type RedfishManager struct {
+	*redfish.Manager
 }
 
 // Nested structs
@@ -99,6 +103,22 @@ type RedfishVoltage struct {
 	Voltage *redfish.Voltage `json:"voltage"`
 }
 
+type RedfishCommandShell struct {
+	CommandShell *redfish.CommandShell `json:"commandShell"`
+}
+
+type RedfishEthernetInterface struct {
+	EthernetInterface *redfish.EthernetInterface `json:"ethernetInterface"`
+}
+
+type RedfishHostInterface struct {
+	HostInterface *redfish.HostInterface `json:"hostInterface"`
+}
+
+type RedfishHostInterfaceType struct {
+	HostInterfaceType *redfish.HostInterfaceType `json:"hostInterfaceType"`
+}
+
 func createType(ctx context.Context, pt *types.Type) (err error) {
 	query := fmt.Sprintf("%s.types.root", pt.Schema.Title)
 	elements, err := qdsl.Qdsl(ctx, query)
@@ -132,6 +152,11 @@ func createRedfishSystemType(ctx context.Context) (err error) {
 
 func createRedfishChassisType(ctx context.Context) (err error) {
 	pt := types.ReflectType(&RedfishChassis{})
+	return createType(ctx, pt)
+}
+
+func createRedfishManagerType(ctx context.Context) (err error) {
+	pt := types.ReflectType(&RedfishManager{})
 	return createType(ctx, pt)
 }
 
@@ -210,6 +235,26 @@ func createRedfishVoltage(ctx context.Context) (err error) {
 	return createType(ctx, pt)
 }
 
+func createRedfishCommandShell(ctx context.Context) (err error) {
+	pt := types.ReflectType(&RedfishCommandShell{})
+	return createType(ctx, pt)
+}
+
+func createRedfishEthernetInterface(ctx context.Context) (err error) {
+	pt := types.ReflectType(&RedfishEthernetInterface{})
+	return createType(ctx, pt)
+}
+
+func createRedfishHostInterface(ctx context.Context) (err error) {
+	pt := types.ReflectType(&RedfishHostInterface{})
+	return createType(ctx, pt)
+}
+
+func createRedfishHostInterfaceType(ctx context.Context) (err error) {
+	pt := types.ReflectType(&RedfishHostInterfaceType{})
+	return createType(ctx, pt)
+}
+
 func createTypes(ctx context.Context) (err error) {
 	if err = createRedfishServiceType(ctx); err != nil {
 		return
@@ -218,6 +263,9 @@ func createTypes(ctx context.Context) (err error) {
 		return
 	}
 	if err = createRedfishChassisType(ctx); err != nil {
+		return
+	}
+	if err = createRedfishManagerType(ctx); err != nil {
 		return
 	}
 	if err = createRedfishBiosType(ctx); err != nil {
@@ -263,6 +311,18 @@ func createTypes(ctx context.Context) (err error) {
 		return
 	}
 	if err = createRedfishVoltage(ctx); err != nil {
+		return
+	}
+	if err = createRedfishCommandShell(ctx); err != nil {
+		return
+	}
+	if err = createRedfishEthernetInterface(ctx); err != nil {
+		return
+	}
+	if err = createRedfishHostInterface(ctx); err != nil {
+		return
+	}
+	if err = createRedfishHostInterfaceType(ctx); err != nil {
 		return
 	}
 	return
