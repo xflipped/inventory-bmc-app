@@ -4,7 +4,6 @@ package agent
 
 import (
 	"fmt"
-	"strings"
 
 	"git.fg-tech.ru/listware/cmdb/pkg/cmdb/documents"
 	"git.fg-tech.ru/listware/go-core/pkg/client/system"
@@ -34,14 +33,17 @@ func (a *Agent) createOrUpdateSystems(ctx module.Context, redfishDevice device.R
 	}
 
 	// create/update chassis
+	// TODO: run in parallel
 	return a.createOrUpdateChasseez(ctx, redfishDevice, service)
 }
 
 func (a *Agent) createOrUpdateSystem(ctx module.Context, redfishDevice device.RedfishDevice, parentNode *documents.Node, computerSystem *redfish.ComputerSystem) (err error) {
+	systemLink := fmt.Sprintf("system-%s", computerSystem.UUID)
+
 	var functionContext *pbtypes.FunctionContext
-	document, err := a.getDocument("%s.service.%s.redfish-devices.root", computerSystem.UUID, redfishDevice.UUID())
+	document, err := a.getDocument("system-%s.service.%s.redfish-devices.root", computerSystem.UUID, redfishDevice.UUID())
 	if err != nil {
-		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-system", computerSystem.UUID, computerSystem)
+		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-system", systemLink, computerSystem)
 		if err != nil {
 			return err
 		}
@@ -65,13 +67,13 @@ func (a *Agent) createOrUpdateSystemBIOS(ctx module.Context, redfishDevice devic
 		return
 	}
 
-	parentNode, err := a.getDocument("%s.service.%s.redfish-devices.root", computerSystem.UUID, redfishDevice.UUID())
+	parentNode, err := a.getDocument("system-%s.service.%s.redfish-devices.root", computerSystem.UUID, redfishDevice.UUID())
 	if err != nil {
 		return
 	}
 
 	var functionContext *pbtypes.FunctionContext
-	document, err := a.getDocument("bios.%s.service.%s.redfish-devices.root", computerSystem.UUID, redfishDevice.UUID())
+	document, err := a.getDocument("bios.system-%s.service.%s.redfish-devices.root", computerSystem.UUID, redfishDevice.UUID())
 	if err != nil {
 		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-bios", "bios", bios)
 		if err != nil {
@@ -88,19 +90,63 @@ func (a *Agent) createOrUpdateSystemBIOS(ctx module.Context, redfishDevice devic
 		return
 	}
 
+	return a.createOrUpdateSystemBiosAttributes(ctx, redfishDevice, computerSystem, bios)
+}
+
+func (a *Agent) createOrUpdateSystemBiosAttributes(ctx module.Context, redfishDevice device.RedfishDevice, computerSystem *redfish.ComputerSystem, bios *redfish.Bios) (err error) {
+	parentNode, err := a.getDocument("bios.system-%s.service.%s.redfish-devices.root", computerSystem.UUID, redfishDevice.UUID())
+	if err != nil {
+		return
+	}
+
+	biosAttributes := bios.Attributes
+
+	for biosAttributeName, _ := range biosAttributes {
+		biosAttributeValue := biosAttributes.String(biosAttributeName)
+		if err = a.createOrUpdateBiosAttribute(ctx, redfishDevice, parentNode, computerSystem, biosAttributeName, biosAttributeValue); err != nil {
+			return
+		}
+	}
 	return a.createOrUpdateSystemLed(ctx, redfishDevice, computerSystem)
+}
+
+func (a *Agent) createOrUpdateBiosAttribute(ctx module.Context, redfishDevice device.RedfishDevice, parentNode *documents.Node, computerSystem *redfish.ComputerSystem, biosAttributeName, biosAttributeValue string) (err error) {
+	biosAttribute := &bootstrap.RedfishBiosAttribute{BiosAttributeValue: biosAttributeValue}
+
+	var functionContext *pbtypes.FunctionContext
+	document, err := a.getDocument("%s.bios.system-%s.service.%s.redfish-devices.root", biosAttributeName, computerSystem.UUID, redfishDevice.UUID())
+	if err != nil {
+		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-bios-attribute", biosAttributeName, biosAttribute)
+		if err != nil {
+			return err
+		}
+	} else {
+		functionContext, err = system.UpdateObject(document.Id.String(), biosAttribute)
+		if err != nil {
+			return err
+		}
+	}
+
+	msg, err := module.ToMessage(functionContext)
+	if err != nil {
+		return
+	}
+
+	ctx.Send(msg)
+
+	return
 }
 
 func (a *Agent) createOrUpdateSystemLed(ctx module.Context, redfishDevice device.RedfishDevice, computerSystem *redfish.ComputerSystem) (err error) {
 	led := &bootstrap.RedfishLed{Led: computerSystem.IndicatorLED}
 
-	parentNode, err := a.getDocument("%s.service.%s.redfish-devices.root", computerSystem.UUID, redfishDevice.UUID())
+	parentNode, err := a.getDocument("system-%s.service.%s.redfish-devices.root", computerSystem.UUID, redfishDevice.UUID())
 	if err != nil {
 		return
 	}
 
 	var functionContext *pbtypes.FunctionContext
-	document, err := a.getDocument("led.%s.service.%s.redfish-devices.root", computerSystem.UUID, redfishDevice.UUID())
+	document, err := a.getDocument("led.system-%s.service.%s.redfish-devices.root", computerSystem.UUID, redfishDevice.UUID())
 	if err != nil {
 		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-led", "led", led)
 		if err != nil {
@@ -113,9 +159,12 @@ func (a *Agent) createOrUpdateSystemLed(ctx module.Context, redfishDevice device
 		}
 	}
 
-	if err = a.executor.ExecSync(ctx, functionContext); err != nil {
+	msg, err := module.ToMessage(functionContext)
+	if err != nil {
 		return
 	}
+
+	ctx.Send(msg)
 
 	return a.createOrUpdateSystemStatus(ctx, redfishDevice, computerSystem)
 }
@@ -123,13 +172,13 @@ func (a *Agent) createOrUpdateSystemLed(ctx module.Context, redfishDevice device
 func (a *Agent) createOrUpdateSystemStatus(ctx module.Context, redfishDevice device.RedfishDevice, computerSystem *redfish.ComputerSystem) (err error) {
 	status := &bootstrap.RedfishStatus{Status: computerSystem.Status}
 
-	parentNode, err := a.getDocument("%s.service.%s.redfish-devices.root", computerSystem.UUID, redfishDevice.UUID())
+	parentNode, err := a.getDocument("system-%s.service.%s.redfish-devices.root", computerSystem.UUID, redfishDevice.UUID())
 	if err != nil {
 		return
 	}
 
 	var functionContext *pbtypes.FunctionContext
-	document, err := a.getDocument("status.%s.service.%s.redfish-devices.root", computerSystem.UUID, redfishDevice.UUID())
+	document, err := a.getDocument("status.system-%s.service.%s.redfish-devices.root", computerSystem.UUID, redfishDevice.UUID())
 	if err != nil {
 		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-status", "status", status)
 		if err != nil {
@@ -142,23 +191,26 @@ func (a *Agent) createOrUpdateSystemStatus(ctx module.Context, redfishDevice dev
 		}
 	}
 
-	if err = a.executor.ExecSync(ctx, functionContext); err != nil {
+	msg, err := module.ToMessage(functionContext)
+	if err != nil {
 		return
 	}
+
+	ctx.Send(msg)
 
 	return a.createOrUpdateSystemBoot(ctx, redfishDevice, computerSystem)
 }
 
 func (a *Agent) createOrUpdateSystemBoot(ctx module.Context, redfishDevice device.RedfishDevice, computerSystem *redfish.ComputerSystem) (err error) {
-	boot := &bootstrap.RedfishBoot{Boot: &computerSystem.Boot}
+	boot := computerSystem.Boot
 
-	parentNode, err := a.getDocument("%s.service.%s.redfish-devices.root", computerSystem.UUID, redfishDevice.UUID())
+	parentNode, err := a.getDocument("system-%s.service.%s.redfish-devices.root", computerSystem.UUID, redfishDevice.UUID())
 	if err != nil {
 		return
 	}
 
 	var functionContext *pbtypes.FunctionContext
-	document, err := a.getDocument("boot.%s.service.%s.redfish-devices.root", computerSystem.UUID, redfishDevice.UUID())
+	document, err := a.getDocument("boot.system-%s.service.%s.redfish-devices.root", computerSystem.UUID, redfishDevice.UUID())
 	if err != nil {
 		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-boot", "boot", boot)
 		if err != nil {
@@ -179,18 +231,18 @@ func (a *Agent) createOrUpdateSystemBoot(ctx module.Context, redfishDevice devic
 }
 
 func (a *Agent) createOrUpdateSystemBootOptions(ctx module.Context, redfishDevice device.RedfishDevice, computerSystem *redfish.ComputerSystem) (err error) {
-	parentNode, err := a.getDocument("boot.%s.service.%s.redfish-devices.root", computerSystem.UUID, redfishDevice.UUID())
+	parentNode, err := a.getDocument("boot.system-%s.service.%s.redfish-devices.root", computerSystem.UUID, redfishDevice.UUID())
 	if err != nil {
 		return
 	}
 
-	options, err := computerSystem.BootOptions()
+	bootOptions, err := computerSystem.BootOptions()
 	if err != nil {
 		return
 	}
 
-	for _, opt := range options {
-		if err = a.createOrUpdateBootOption(ctx, redfishDevice, parentNode, computerSystem, opt); err != nil {
+	for _, bootOption := range bootOptions {
+		if err = a.createOrUpdateBootOption(ctx, redfishDevice, parentNode, computerSystem, bootOption); err != nil {
 			return
 		}
 	}
@@ -198,26 +250,28 @@ func (a *Agent) createOrUpdateSystemBootOptions(ctx module.Context, redfishDevic
 }
 
 func (a *Agent) createOrUpdateBootOption(ctx module.Context, redfishDevice device.RedfishDevice, parentNode *documents.Node, computerSystem *redfish.ComputerSystem, bootOption *redfish.BootOption) (err error) {
-	optionLink := strings.ToLower(bootOption.ID)
-	option := &bootstrap.RedfishBootOption{BootOption: bootOption}
+	bootOptionLink := fmt.Sprintf("option-%s", bootOption.ID)
 
 	var functionContext *pbtypes.FunctionContext
-	document, err := a.getDocument("%s.boot.%s.service.%s.redfish-devices.root", optionLink, computerSystem.UUID, redfishDevice.UUID())
+	document, err := a.getDocument("%s.boot.system-%s.service.%s.redfish-devices.root", bootOptionLink, computerSystem.UUID, redfishDevice.UUID())
 	if err != nil {
-		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-boot-option", optionLink, option)
+		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-boot-option", bootOptionLink, bootOption)
 		if err != nil {
 			return err
 		}
 	} else {
-		functionContext, err = system.UpdateObject(document.Id.String(), option)
+		functionContext, err = system.UpdateObject(document.Id.String(), bootOption)
 		if err != nil {
 			return err
 		}
 	}
 
-	if err = a.executor.ExecSync(ctx, functionContext); err != nil {
+	msg, err := module.ToMessage(functionContext)
+	if err != nil {
 		return
 	}
+
+	ctx.Send(msg)
 
 	return
 }
@@ -228,13 +282,13 @@ func (a *Agent) createOrUpdateSystemSecureBoot(ctx module.Context, redfishDevice
 		return
 	}
 
-	parentNode, err := a.getDocument("%s.service.%s.redfish-devices.root", computerSystem.UUID, redfishDevice.UUID())
+	parentNode, err := a.getDocument("system-%s.service.%s.redfish-devices.root", computerSystem.UUID, redfishDevice.UUID())
 	if err != nil {
 		return
 	}
 
 	var functionContext *pbtypes.FunctionContext
-	document, err := a.getDocument("secure-boot.%s.service.%s.redfish-devices.root", computerSystem.UUID, redfishDevice.UUID())
+	document, err := a.getDocument("secure-boot.system-%s.service.%s.redfish-devices.root", computerSystem.UUID, redfishDevice.UUID())
 	if err != nil {
 		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-secure-boot", "secure-boot", secureBoot)
 		if err != nil {
@@ -247,15 +301,18 @@ func (a *Agent) createOrUpdateSystemSecureBoot(ctx module.Context, redfishDevice
 		}
 	}
 
-	if err = a.executor.ExecSync(ctx, functionContext); err != nil {
+	msg, err := module.ToMessage(functionContext)
+	if err != nil {
 		return
 	}
+
+	ctx.Send(msg)
 
 	return a.createOrUpdatePCIeDevices(ctx, redfishDevice, computerSystem)
 }
 
 func (a *Agent) createOrUpdatePCIeDevices(ctx module.Context, redfishDevice device.RedfishDevice, computerSystem *redfish.ComputerSystem) (err error) {
-	parentNode, err := a.getDocument("%s.service.%s.redfish-devices.root", computerSystem.UUID, redfishDevice.UUID())
+	parentNode, err := a.getDocument("system-%s.service.%s.redfish-devices.root", computerSystem.UUID, redfishDevice.UUID())
 	if err != nil {
 		return
 	}
@@ -270,15 +327,16 @@ func (a *Agent) createOrUpdatePCIeDevices(ctx module.Context, redfishDevice devi
 			return
 		}
 	}
+
+	// TODO: return createMemories, createProcessors, etc.
 	return
 }
 
-func (a *Agent) createOrUpdatePCIeDevice(ctx module.Context, redfishDevice device.RedfishDevice, parentNode *documents.Node, computerSystem *redfish.ComputerSystem, rfDevice *redfish.PCIeDevice) (err error) {
-	deviceLink := strings.ToLower(rfDevice.ID)
-	device := &bootstrap.RedfishPcieDevice{PCIeDevice: rfDevice}
+func (a *Agent) createOrUpdatePCIeDevice(ctx module.Context, redfishDevice device.RedfishDevice, parentNode *documents.Node, computerSystem *redfish.ComputerSystem, device *redfish.PCIeDevice) (err error) {
+	deviceLink := fmt.Sprintf("pcie-device-%s", device.ID)
 
 	var functionContext *pbtypes.FunctionContext
-	document, err := a.getDocument("%s.%s.service.%s.redfish-devices.root", deviceLink, computerSystem.UUID, redfishDevice.UUID())
+	document, err := a.getDocument("%s.system-%s.service.%s.redfish-devices.root", deviceLink, computerSystem.UUID, redfishDevice.UUID())
 	if err != nil {
 		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-pcie-device", deviceLink, device)
 		if err != nil {
@@ -295,18 +353,19 @@ func (a *Agent) createOrUpdatePCIeDevice(ctx module.Context, redfishDevice devic
 		return
 	}
 
-	return a.createOrUpdatePCIeDeviceStatus(ctx, redfishDevice, computerSystem, deviceLink, rfDevice)
+	return a.createOrUpdatePCIeDeviceStatus(ctx, redfishDevice, computerSystem, deviceLink, device)
 }
 
 func (a *Agent) createOrUpdatePCIeDeviceStatus(ctx module.Context, redfishDevice device.RedfishDevice, computerSystem *redfish.ComputerSystem, deviceLink string, device *redfish.PCIeDevice) (err error) {
 	status := &bootstrap.RedfishStatus{Status: device.Status}
-	parentNode, err := a.getDocument("%s.%s.service.%s.redfish-devices.root", deviceLink, computerSystem.UUID, redfishDevice.UUID())
+
+	parentNode, err := a.getDocument("%s.system-%s.service.%s.redfish-devices.root", deviceLink, computerSystem.UUID, redfishDevice.UUID())
 	if err != nil {
 		return
 	}
 
 	var functionContext *pbtypes.FunctionContext
-	document, err := a.getDocument("status.%s.%s.service.%s.redfish-devices.root", deviceLink, computerSystem.UUID, redfishDevice.UUID())
+	document, err := a.getDocument("status.%s.system-%s.service.%s.redfish-devices.root", deviceLink, computerSystem.UUID, redfishDevice.UUID())
 	if err != nil {
 		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-status", "status", status)
 		if err != nil {
@@ -330,21 +389,22 @@ func (a *Agent) createOrUpdatePCIeDeviceStatus(ctx module.Context, redfishDevice
 }
 
 func (a *Agent) createOrUpdatePCIeDeviceInterface(ctx module.Context, redfishDevice device.RedfishDevice, computerSystem *redfish.ComputerSystem, deviceLink string, device *redfish.PCIeDevice) (err error) {
-	iface := &bootstrap.RedfishPcieInterface{PCIeInterface: &device.PCIeInterface}
-	parentNode, err := a.getDocument("%s.%s.service.%s.redfish-devices.root", deviceLink, computerSystem.UUID, redfishDevice.UUID())
+	deviceInterface := &device.PCIeInterface
+
+	parentNode, err := a.getDocument("%s.system-%s.service.%s.redfish-devices.root", deviceLink, computerSystem.UUID, redfishDevice.UUID())
 	if err != nil {
 		return
 	}
 
 	var functionContext *pbtypes.FunctionContext
-	document, err := a.getDocument("pcie-interface.%s.%s.service.%s.redfish-devices.root", deviceLink, computerSystem.UUID, redfishDevice.UUID())
+	document, err := a.getDocument("pcie-interface.%s.system-%s.service.%s.redfish-devices.root", deviceLink, computerSystem.UUID, redfishDevice.UUID())
 	if err != nil {
-		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-pcie-interface", "pcie-interface", iface)
+		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-pcie-interface", "pcie-interface", deviceInterface)
 		if err != nil {
 			return err
 		}
 	} else {
-		functionContext, err = system.UpdateObject(document.Id.String(), iface)
+		functionContext, err = system.UpdateObject(document.Id.String(), deviceInterface)
 		if err != nil {
 			return err
 		}
@@ -360,8 +420,9 @@ func (a *Agent) createOrUpdatePCIeDeviceInterface(ctx module.Context, redfishDev
 	return
 }
 
+// TODO: currently unavailable structures, pending to implement
 func (a *Agent) createOrUpdateMemories(ctx module.Context, redfishDevice device.RedfishDevice, computerSystem *redfish.ComputerSystem) (err error) {
-	parentNode, err := a.getDocument("%s.service.%s.redfish-devices.root", computerSystem.UUID, redfishDevice.UUID())
+	parentNode, err := a.getDocument("system-%s.service.%s.redfish-devices.root", computerSystem.UUID, redfishDevice.UUID())
 	if err != nil {
 		return
 	}

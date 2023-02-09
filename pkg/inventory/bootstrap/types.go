@@ -43,6 +43,10 @@ type RedfishBios struct {
 	*redfish.Bios
 }
 
+type RedfishBiosAttribute struct {
+	BiosAttributeValue string `json:"biosAttributeValue"`
+}
+
 type RedfishLed struct {
 	Led common.IndicatorLED `json:"led"`
 }
@@ -52,23 +56,23 @@ type RedfishStatus struct {
 }
 
 type RedfishBoot struct {
-	Boot *redfish.Boot `json:"boot"`
+	*redfish.Boot
 }
 
 type RedfishBootOption struct {
-	BootOption *redfish.BootOption `json:"bootOption"`
+	*redfish.BootOption
 }
 
 type RedfishSecureBoot struct {
-	SecureBoot *redfish.SecureBoot `json:"secureBoot"`
+	*redfish.SecureBoot
 }
 
 type RedfishPcieDevice struct {
-	PCIeDevice *redfish.PCIeDevice `json:"PCIeDevice"`
+	*redfish.PCIeDevice
 }
 
 type RedfishPcieInterface struct {
-	PCIeInterface *redfish.PCIeInterface `json:"PCIeInterface"`
+	*redfish.PCIeInterface
 }
 
 type RedfishThermal struct {
@@ -78,11 +82,11 @@ type RedfishThermal struct {
 }
 
 type RedfishTemperature struct {
-	Temperature *redfish.Temperature `json:"temperature"`
+	*redfish.Temperature
 }
 
 type RedfishFan struct {
-	Fan *redfish.Fan `json:"fan"`
+	*redfish.Fan
 }
 
 type RedfishPower struct {
@@ -92,27 +96,27 @@ type RedfishPower struct {
 }
 
 type RedfishPowerControl struct {
-	PowerControl *redfish.PowerControl `json:"powerControl"`
+	*redfish.PowerControl
 }
 
 type RedfishPowerSupply struct {
-	PowerSupply *redfish.PowerSupply `json:"powerSupply"`
+	*redfish.PowerSupply
 }
 
 type RedfishVoltage struct {
-	Voltage *redfish.Voltage `json:"voltage"`
+	*redfish.Voltage
 }
 
 type RedfishCommandShell struct {
-	CommandShell *redfish.CommandShell `json:"commandShell"`
+	*redfish.CommandShell
 }
 
 type RedfishEthernetInterface struct {
-	EthernetInterface *redfish.EthernetInterface `json:"ethernetInterface"`
+	*redfish.EthernetInterface
 }
 
 type RedfishHostInterface struct {
-	HostInterface *redfish.HostInterface `json:"hostInterface"`
+	*redfish.HostInterface
 }
 
 type RedfishHostInterfaceType struct {
@@ -162,6 +166,11 @@ func createRedfishManagerType(ctx context.Context) (err error) {
 
 func createRedfishBiosType(ctx context.Context) (err error) {
 	pt := types.ReflectType(&RedfishBios{})
+	return createType(ctx, pt)
+}
+
+func createRedfishBiosAttributeType(ctx context.Context) (err error) {
+	pt := types.ReflectType(&RedfishBiosAttribute{})
 	return createType(ctx, pt)
 }
 
@@ -269,6 +278,9 @@ func createTypes(ctx context.Context) (err error) {
 		return
 	}
 	if err = createRedfishBiosType(ctx); err != nil {
+		return
+	}
+	if err = createRedfishBiosAttributeType(ctx); err != nil {
 		return
 	}
 	if err = createRedfishLedType(ctx); err != nil {

@@ -4,7 +4,6 @@ package agent
 
 import (
 	"fmt"
-	"strings"
 
 	"git.fg-tech.ru/listware/cmdb/pkg/cmdb/documents"
 	"git.fg-tech.ru/listware/go-core/pkg/client/system"
@@ -23,28 +22,31 @@ func (a *Agent) createOrUpdateChasseez(ctx module.Context, redfishDevice device.
 		return
 	}
 
-	chassis, err := service.Chassis()
+	chasseez, err := service.Chassis()
 	if err != nil {
 		return
 	}
 
-	for _, chs := range chassis {
-		if err = a.createOrUpdateChassee(ctx, redfishDevice, parentNode, chs); err != nil {
+	for _, chassee := range chasseez {
+		if err = a.createOrUpdateChassee(ctx, redfishDevice, parentNode, chassee); err != nil {
 			return
 		}
 	}
 
 	// create/update managers
+	// TODO: run in parallel
 	return a.createOrUpdateManagers(ctx, redfishDevice, service)
 }
 
-// TODO: check Chassis & RedfishDevice UUID
+// TODO: check Chassis & RedfishDevice UUID, now they are the same
 func (a *Agent) createOrUpdateChassee(ctx module.Context, redfishDevice device.RedfishDevice, parentNode *documents.Node, chassis *redfish.Chassis) (err error) {
+	chassisLink := fmt.Sprintf("chassis-%s", chassis.UUID)
+
 	var functionContext *pbtypes.FunctionContext
-	document, err := a.getDocument("%s.service.%s.redfish-devices.root", chassis.UUID, redfishDevice.UUID())
+	document, err := a.getDocument("chassis-%s.service.%s.redfish-devices.root", chassis.UUID, redfishDevice.UUID())
 
 	if err != nil {
-		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-chassis", chassis.UUID, chassis)
+		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-chassis", chassisLink, chassis)
 		if err != nil {
 			return err
 		}
@@ -63,24 +65,24 @@ func (a *Agent) createOrUpdateChassee(ctx module.Context, redfishDevice device.R
 }
 
 func (a *Agent) createOrUpdateThermal(ctx module.Context, redfishDevice device.RedfishDevice, chassis *redfish.Chassis) (err error) {
-	rfThermal, err := chassis.Thermal()
+	redfishThermal, err := chassis.Thermal()
 	if err != nil {
 		return
 	}
 
 	thermal := &bootstrap.RedfishThermal{
-		ID:          rfThermal.ID,
-		Name:        rfThermal.Name,
-		Description: rfThermal.Description,
+		ID:          redfishThermal.ID,
+		Name:        redfishThermal.Name,
+		Description: redfishThermal.Description,
 	}
 
-	parentNode, err := a.getDocument("%s.service.%s.redfish-devices.root", chassis.UUID, redfishDevice.UUID())
+	parentNode, err := a.getDocument("chassis-%s.service.%s.redfish-devices.root", chassis.UUID, redfishDevice.UUID())
 	if err != nil {
 		return
 	}
 
 	var functionContext *pbtypes.FunctionContext
-	document, err := a.getDocument("thermal.%s.service.%s.redfish-devices.root", chassis.UUID, redfishDevice.UUID())
+	document, err := a.getDocument("thermal.chassis-%s.service.%s.redfish-devices.root", chassis.UUID, redfishDevice.UUID())
 	if err != nil {
 		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-thermal", "thermal", thermal)
 		if err != nil {
@@ -97,17 +99,17 @@ func (a *Agent) createOrUpdateThermal(ctx module.Context, redfishDevice device.R
 		return
 	}
 
-	return a.createOrUpdateThermalSubsystem(ctx, redfishDevice, chassis, rfThermal)
+	return a.createOrUpdateThermalSubsystem(ctx, redfishDevice, chassis, redfishThermal)
 }
 
 func (a *Agent) createOrUpdateThermalSubsystem(ctx module.Context, redfishDevice device.RedfishDevice, chassis *redfish.Chassis, thermal *redfish.Thermal) (err error) {
-	parentNode, err := a.getDocument("thermal.%s.service.%s.redfish-devices.root", chassis.UUID, redfishDevice.UUID())
+	parentNode, err := a.getDocument("thermal.chassis-%s.service.%s.redfish-devices.root", chassis.UUID, redfishDevice.UUID())
 	if err != nil {
 		return
 	}
 
-	for _, temp := range thermal.Temperatures {
-		if err = a.createOrUpdateThermalTemperature(ctx, redfishDevice, chassis, parentNode, &temp); err != nil {
+	for _, temperature := range thermal.Temperatures {
+		if err = a.createOrUpdateThermalTemperature(ctx, redfishDevice, chassis, parentNode, &temperature); err != nil {
 			return
 		}
 	}
@@ -121,12 +123,11 @@ func (a *Agent) createOrUpdateThermalSubsystem(ctx module.Context, redfishDevice
 	return a.createOrUpdatePower(ctx, redfishDevice, chassis)
 }
 
-func (a *Agent) createOrUpdateThermalTemperature(ctx module.Context, redfishDevice device.RedfishDevice, chassis *redfish.Chassis, parentNode *documents.Node, rfTemperature *redfish.Temperature) (err error) {
-	temperatureLink := strings.ToLower(rfTemperature.MemberID)
-	temperature := &bootstrap.RedfishTemperature{Temperature: rfTemperature}
+func (a *Agent) createOrUpdateThermalTemperature(ctx module.Context, redfishDevice device.RedfishDevice, chassis *redfish.Chassis, parentNode *documents.Node, temperature *redfish.Temperature) (err error) {
+	temperatureLink := temperature.MemberID
 
 	var functionContext *pbtypes.FunctionContext
-	document, err := a.getDocument("%s.thermal.%s.service.%s.redfish-devices.root", temperatureLink, chassis.UUID, redfishDevice.UUID())
+	document, err := a.getDocument("%s.thermal.chassis-%s.service.%s.redfish-devices.root", temperatureLink, chassis.UUID, redfishDevice.UUID())
 	if err != nil {
 		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-temperature", temperatureLink, temperature)
 		if err != nil {
@@ -143,22 +144,23 @@ func (a *Agent) createOrUpdateThermalTemperature(ctx module.Context, redfishDevi
 		return
 	}
 
-	if err = a.createOrUpdateThermalTemperatureStatus(ctx, redfishDevice, chassis, temperatureLink, rfTemperature); err != nil {
+	if err = a.createOrUpdateThermalTemperatureStatus(ctx, redfishDevice, chassis, temperatureLink, temperature); err != nil {
 		return
 	}
 
 	return
 }
 
-func (a *Agent) createOrUpdateThermalTemperatureStatus(ctx module.Context, redfishDevice device.RedfishDevice, chassis *redfish.Chassis, temperatureLink string, rfTemperature *redfish.Temperature) (err error) {
-	status := &bootstrap.RedfishStatus{Status: rfTemperature.Status}
-	parentNode, err := a.getDocument("%s.thermal.%s.service.%s.redfish-devices.root", temperatureLink, chassis.UUID, redfishDevice.UUID())
+func (a *Agent) createOrUpdateThermalTemperatureStatus(ctx module.Context, redfishDevice device.RedfishDevice, chassis *redfish.Chassis, temperatureLink string, temperature *redfish.Temperature) (err error) {
+	status := &bootstrap.RedfishStatus{Status: temperature.Status}
+
+	parentNode, err := a.getDocument("%s.thermal.chassis-%s.service.%s.redfish-devices.root", temperatureLink, chassis.UUID, redfishDevice.UUID())
 	if err != nil {
 		return
 	}
 
 	var functionContext *pbtypes.FunctionContext
-	document, err := a.getDocument("status.%s.thermal.%s.service.%s.redfish-devices.root", temperatureLink, chassis.UUID, redfishDevice.UUID())
+	document, err := a.getDocument("status.%s.thermal.chassis-%s.service.%s.redfish-devices.root", temperatureLink, chassis.UUID, redfishDevice.UUID())
 	if err != nil {
 		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-status", "status", status)
 		if err != nil {
@@ -181,12 +183,12 @@ func (a *Agent) createOrUpdateThermalTemperatureStatus(ctx module.Context, redfi
 	return
 }
 
-func (a *Agent) createOrUpdateThermalFan(ctx module.Context, redfishDevice device.RedfishDevice, chassis *redfish.Chassis, parentNode *documents.Node, rfFan *redfish.Fan) (err error) {
-	fanLink := strings.ToLower(rfFan.MemberID)
-	fan := &bootstrap.RedfishFan{Fan: rfFan}
+// TODO: update later, currently not available
+func (a *Agent) createOrUpdateThermalFan(ctx module.Context, redfishDevice device.RedfishDevice, chassis *redfish.Chassis, parentNode *documents.Node, fan *redfish.Fan) (err error) {
+	fanLink := fan.MemberID
 
 	var functionContext *pbtypes.FunctionContext
-	document, err := a.getDocument("%s.thermal.%s.service.%s.redfish-devices.root", fanLink, chassis.UUID, redfishDevice.UUID())
+	document, err := a.getDocument("%s.thermal.chassis-%s.service.%s.redfish-devices.root", fanLink, chassis.UUID, redfishDevice.UUID())
 	if err != nil {
 		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-fan", fanLink, fan)
 		if err != nil {
@@ -207,24 +209,24 @@ func (a *Agent) createOrUpdateThermalFan(ctx module.Context, redfishDevice devic
 }
 
 func (a *Agent) createOrUpdatePower(ctx module.Context, redfishDevice device.RedfishDevice, chassis *redfish.Chassis) (err error) {
-	rfPower, err := chassis.Power()
+	redfishPower, err := chassis.Power()
 	if err != nil {
 		return
 	}
 
 	power := &bootstrap.RedfishPower{
-		ID:          rfPower.ID,
-		Name:        rfPower.Name,
-		Description: rfPower.Description,
+		ID:          redfishPower.ID,
+		Name:        redfishPower.Name,
+		Description: redfishPower.Description,
 	}
 
-	parentNode, err := a.getDocument("%s.service.%s.redfish-devices.root", chassis.UUID, redfishDevice.UUID())
+	parentNode, err := a.getDocument("chassis-%s.service.%s.redfish-devices.root", chassis.UUID, redfishDevice.UUID())
 	if err != nil {
 		return
 	}
 
 	var functionContext *pbtypes.FunctionContext
-	document, err := a.getDocument("power.%s.service.%s.redfish-devices.root", chassis.UUID, redfishDevice.UUID())
+	document, err := a.getDocument("power.chassis-%s.service.%s.redfish-devices.root", chassis.UUID, redfishDevice.UUID())
 	if err != nil {
 		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-power", "power", power)
 		if err != nil {
@@ -241,11 +243,11 @@ func (a *Agent) createOrUpdatePower(ctx module.Context, redfishDevice device.Red
 		return
 	}
 
-	return a.createOrUpdatePowerSubsystem(ctx, redfishDevice, chassis, rfPower)
+	return a.createOrUpdatePowerSubsystem(ctx, redfishDevice, chassis, redfishPower)
 }
 
 func (a *Agent) createOrUpdatePowerSubsystem(ctx module.Context, redfishDevice device.RedfishDevice, chassis *redfish.Chassis, power *redfish.Power) (err error) {
-	parentNode, err := a.getDocument("power.%s.service.%s.redfish-devices.root", chassis.UUID, redfishDevice.UUID())
+	parentNode, err := a.getDocument("power.chassis-%s.service.%s.redfish-devices.root", chassis.UUID, redfishDevice.UUID())
 	if err != nil {
 		return
 	}
@@ -254,20 +256,20 @@ func (a *Agent) createOrUpdatePowerSubsystem(ctx module.Context, redfishDevice d
 		return
 	}
 
-	for _, pc := range power.PowerControl {
-		if err = a.createOrUpdatePowerControl(ctx, redfishDevice, chassis, parentNode, &pc); err != nil {
+	for _, powerControl := range power.PowerControl {
+		if err = a.createOrUpdatePowerControl(ctx, redfishDevice, chassis, parentNode, &powerControl); err != nil {
 			return
 		}
 	}
 
-	for _, ps := range power.PowerSupplies {
-		if err = a.createOrUpdatePowerSupply(ctx, redfishDevice, chassis, parentNode, &ps); err != nil {
+	for _, powerSupply := range power.PowerSupplies {
+		if err = a.createOrUpdatePowerSupply(ctx, redfishDevice, chassis, parentNode, &powerSupply); err != nil {
 			return
 		}
 	}
 
-	for _, v := range power.Voltages {
-		if err = a.createOrUpdateVoltage(ctx, redfishDevice, chassis, parentNode, &v); err != nil {
+	for _, voltage := range power.Voltages {
+		if err = a.createOrUpdateVoltage(ctx, redfishDevice, chassis, parentNode, &voltage); err != nil {
 			return
 		}
 	}
@@ -279,7 +281,7 @@ func (a *Agent) createOrUpdatePowerIndicatorLED(ctx module.Context, redfishDevic
 	led := &bootstrap.RedfishLed{Led: indicatorLED}
 
 	var functionContext *pbtypes.FunctionContext
-	document, err := a.getDocument("led.power.%s.service.%s.redfish-devices.root", chassis.UUID, redfishDevice.UUID())
+	document, err := a.getDocument("led.power.chassis-%s.service.%s.redfish-devices.root", chassis.UUID, redfishDevice.UUID())
 	if err != nil {
 		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-led", "led", led)
 		if err != nil {
@@ -304,12 +306,11 @@ func (a *Agent) createOrUpdatePowerIndicatorLED(ctx module.Context, redfishDevic
 
 // TODO: unique link
 // TODO: device with Id is present ? create : ignore
-func (a *Agent) createOrUpdatePowerControl(ctx module.Context, redfishDevice device.RedfishDevice, chassis *redfish.Chassis, parentNode *documents.Node, rfPowerControl *redfish.PowerControl) (err error) {
-	powerControlLink := fmt.Sprintf("pcontrol%s", strings.ToLower(rfPowerControl.MemberID))
-	powerControl := &bootstrap.RedfishPowerControl{PowerControl: rfPowerControl}
+func (a *Agent) createOrUpdatePowerControl(ctx module.Context, redfishDevice device.RedfishDevice, chassis *redfish.Chassis, parentNode *documents.Node, powerControl *redfish.PowerControl) (err error) {
+	powerControlLink := fmt.Sprintf("power-control-%s", powerControl.MemberID)
 
 	var functionContext *pbtypes.FunctionContext
-	document, err := a.getDocument("%s.power.%s.service.%s.redfish-devices.root", powerControlLink, chassis.UUID, redfishDevice.UUID())
+	document, err := a.getDocument("%s.power.chassis-%s.service.%s.redfish-devices.root", powerControlLink, chassis.UUID, redfishDevice.UUID())
 	if err != nil {
 		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-power-control", powerControlLink, powerControl)
 		if err != nil {
@@ -334,12 +335,11 @@ func (a *Agent) createOrUpdatePowerControl(ctx module.Context, redfishDevice dev
 
 // TODO: unique link
 // TODO: device with Id is present ? create : ignore
-func (a *Agent) createOrUpdatePowerSupply(ctx module.Context, redfishDevice device.RedfishDevice, chassis *redfish.Chassis, parentNode *documents.Node, rfPowerSupply *redfish.PowerSupply) (err error) {
-	powerSupplyLink := fmt.Sprintf("psupply%s", strings.ToLower(rfPowerSupply.MemberID))
-	powerSupply := &bootstrap.RedfishPowerSupply{PowerSupply: rfPowerSupply}
+func (a *Agent) createOrUpdatePowerSupply(ctx module.Context, redfishDevice device.RedfishDevice, chassis *redfish.Chassis, parentNode *documents.Node, powerSupply *redfish.PowerSupply) (err error) {
+	powerSupplyLink := fmt.Sprintf("power-supply-%s", powerSupply.MemberID)
 
 	var functionContext *pbtypes.FunctionContext
-	document, err := a.getDocument("%s.power.%s.service.%s.redfish-devices.root", powerSupplyLink, chassis.UUID, redfishDevice.UUID())
+	document, err := a.getDocument("%s.power.chassis-%s.service.%s.redfish-devices.root", powerSupplyLink, chassis.UUID, redfishDevice.UUID())
 	if err != nil {
 		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-power-supply", powerSupplyLink, powerSupply)
 		if err != nil {
@@ -364,12 +364,11 @@ func (a *Agent) createOrUpdatePowerSupply(ctx module.Context, redfishDevice devi
 
 // TODO: unique link
 // TODO: device with Id is present ? create : ignore
-func (a *Agent) createOrUpdateVoltage(ctx module.Context, redfishDevice device.RedfishDevice, chassis *redfish.Chassis, parentNode *documents.Node, rfVoltage *redfish.Voltage) (err error) {
-	voltageLink := strings.ToLower(rfVoltage.MemberID)
-	voltage := &bootstrap.RedfishVoltage{Voltage: rfVoltage}
+func (a *Agent) createOrUpdateVoltage(ctx module.Context, redfishDevice device.RedfishDevice, chassis *redfish.Chassis, parentNode *documents.Node, voltage *redfish.Voltage) (err error) {
+	voltageLink := fmt.Sprintf("voltage-%s", voltage.MemberID)
 
 	var functionContext *pbtypes.FunctionContext
-	document, err := a.getDocument("%s.power.%s.service.%s.redfish-devices.root", voltageLink, chassis.UUID, redfishDevice.UUID())
+	document, err := a.getDocument("%s.power.chassis-%s.service.%s.redfish-devices.root", voltageLink, chassis.UUID, redfishDevice.UUID())
 	if err != nil {
 		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-voltage", voltageLink, voltage)
 		if err != nil {
