@@ -119,12 +119,48 @@ type RedfishPowerControl struct {
 	*redfish.PowerControl
 }
 
+type RedfishPhysicalContext struct {
+	PhysicalContext *common.PhysicalContext `json:"physicalContext"`
+}
+
+type RedfishPowerMetric struct {
+	*redfish.PowerMetric
+}
+
+type RedfishPowerLimit struct {
+	*redfish.PowerLimit
+}
+
 type RedfishPowerSupply struct {
 	*redfish.PowerSupply
 }
 
 type RedfishVoltage struct {
 	*redfish.Voltage
+}
+
+type RedfishPhysicalSecurity struct {
+	*redfish.PhysicalSecurity
+}
+
+type RedfishLocation struct {
+	*common.Location
+}
+
+type RedfishPartLocation struct {
+	*common.PartLocation
+}
+
+type RedfishPlacement struct {
+	*common.Placement
+}
+
+type RedfishPostalAddress struct {
+	*common.PostalAddress
+}
+
+type RedfishSupportedResetTypes struct {
+	SupportedResetTypes []redfish.ResetType `json:"resetTypes"`
 }
 
 type RedfishCommandShell struct {
@@ -279,6 +315,21 @@ func createRedfishPowerControl(ctx context.Context) (err error) {
 	return createType(ctx, pt)
 }
 
+func createRedfishPhysicalContext(ctx context.Context) (err error) {
+	pt := types.ReflectType(&RedfishPhysicalContext{})
+	return createType(ctx, pt)
+}
+
+func createRedfishPowerMetric(ctx context.Context) (err error) {
+	pt := types.ReflectType(&RedfishPowerMetric{})
+	return createType(ctx, pt)
+}
+
+func createRedfishPowerLimit(ctx context.Context) (err error) {
+	pt := types.ReflectType(&RedfishPowerLimit{})
+	return createType(ctx, pt)
+}
+
 func createRedfishPowerSupply(ctx context.Context) (err error) {
 	pt := types.ReflectType(&RedfishPowerSupply{})
 	return createType(ctx, pt)
@@ -286,6 +337,36 @@ func createRedfishPowerSupply(ctx context.Context) (err error) {
 
 func createRedfishVoltage(ctx context.Context) (err error) {
 	pt := types.ReflectType(&RedfishVoltage{})
+	return createType(ctx, pt)
+}
+
+func createRedfishPhysicalSecurity(ctx context.Context) (err error) {
+	pt := types.ReflectType(&RedfishPhysicalSecurity{})
+	return createType(ctx, pt)
+}
+
+func createRedfishLocation(ctx context.Context) (err error) {
+	pt := types.ReflectType(&RedfishLocation{})
+	return createType(ctx, pt)
+}
+
+func createRedfishPartLocation(ctx context.Context) (err error) {
+	pt := types.ReflectType(&RedfishPartLocation{})
+	return createType(ctx, pt)
+}
+
+func createRedfishPlacement(ctx context.Context) (err error) {
+	pt := types.ReflectType(&RedfishPlacement{})
+	return createType(ctx, pt)
+}
+
+func createRedfishPostalAddress(ctx context.Context) (err error) {
+	pt := types.ReflectType(&RedfishPostalAddress{})
+	return createType(ctx, pt)
+}
+
+func createRedfishSupportedResetTypes(ctx context.Context) (err error) {
+	pt := types.ReflectType(&RedfishSupportedResetTypes{})
 	return createType(ctx, pt)
 }
 
@@ -379,10 +460,37 @@ func createTypes(ctx context.Context) (err error) {
 	if err = createRedfishPowerControl(ctx); err != nil {
 		return
 	}
+	if err = createRedfishPhysicalContext(ctx); err != nil {
+		return
+	}
+	if err = createRedfishPowerMetric(ctx); err != nil {
+		return
+	}
+	if err = createRedfishPowerLimit(ctx); err != nil {
+		return
+	}
 	if err = createRedfishPowerSupply(ctx); err != nil {
 		return
 	}
 	if err = createRedfishVoltage(ctx); err != nil {
+		return
+	}
+	if err = createRedfishPhysicalSecurity(ctx); err != nil {
+		return
+	}
+	if err = createRedfishLocation(ctx); err != nil {
+		return
+	}
+	if err = createRedfishPartLocation(ctx); err != nil {
+		return
+	}
+	if err = createRedfishPlacement(ctx); err != nil {
+		return
+	}
+	if err = createRedfishPostalAddress(ctx); err != nil {
+		return
+	}
+	if err = createRedfishSupportedResetTypes(ctx); err != nil {
 		return
 	}
 	if err = createRedfishCommandShell(ctx); err != nil {

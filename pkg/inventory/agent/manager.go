@@ -56,6 +56,70 @@ func (a *Agent) createOrUpdateManager(ctx module.Context, redfishDevice device.R
 		return
 	}
 
+	return a.createOrUpdateManagerStatus(ctx, redfishDevice, manager)
+}
+
+func (a *Agent) createOrUpdateManagerStatus(ctx module.Context, redfishDevice device.RedfishDevice, manager *redfish.Manager) (err error) {
+	status := &bootstrap.RedfishStatus{Status: manager.Status}
+
+	parentNode, err := a.getDocument("manager-%s.service.%s.redfish-devices.root", manager.UUID, redfishDevice.UUID())
+	if err != nil {
+		return
+	}
+
+	var functionContext *pbtypes.FunctionContext
+	document, err := a.getDocument("status.manager-%s.service.%s.redfish-devices.root", manager.UUID, redfishDevice.UUID())
+	if err != nil {
+		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-status", "status", status)
+		if err != nil {
+			return err
+		}
+	} else {
+		functionContext, err = system.UpdateObject(document.Id.String(), status)
+		if err != nil {
+			return err
+		}
+	}
+
+	msg, err := module.ToMessage(functionContext)
+	if err != nil {
+		return
+	}
+
+	ctx.Send(msg)
+
+	return a.createOrUpdateManagerPowerState(ctx, redfishDevice, manager)
+}
+
+func (a *Agent) createOrUpdateManagerPowerState(ctx module.Context, redfishDevice device.RedfishDevice, manager *redfish.Manager) (err error) {
+	powerState := &bootstrap.RedfishPowerState{PowerState: manager.PowerState}
+
+	parentNode, err := a.getDocument("manager-%s.service.%s.redfish-devices.root", manager.UUID, redfishDevice.UUID())
+	if err != nil {
+		return
+	}
+
+	var functionContext *pbtypes.FunctionContext
+	document, err := a.getDocument("power-state.manager-%s.service.%s.redfish-devices.root", manager.UUID, redfishDevice.UUID())
+	if err != nil {
+		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-power-state", "power-state", powerState)
+		if err != nil {
+			return err
+		}
+	} else {
+		functionContext, err = system.UpdateObject(document.Id.String(), powerState)
+		if err != nil {
+			return err
+		}
+	}
+
+	msg, err := module.ToMessage(functionContext)
+	if err != nil {
+		return
+	}
+
+	ctx.Send(msg)
+
 	return a.createOrUpdateManagerCommandShell(ctx, redfishDevice, manager)
 }
 

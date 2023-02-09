@@ -144,11 +144,7 @@ func (a *Agent) createOrUpdateThermalTemperature(ctx module.Context, redfishDevi
 		return
 	}
 
-	if err = a.createOrUpdateThermalTemperatureStatus(ctx, redfishDevice, chassis, temperatureLink, temperature); err != nil {
-		return
-	}
-
-	return
+	return a.createOrUpdateThermalTemperatureStatus(ctx, redfishDevice, chassis, temperatureLink, temperature)
 }
 
 func (a *Agent) createOrUpdateThermalTemperatureStatus(ctx module.Context, redfishDevice device.RedfishDevice, chassis *redfish.Chassis, temperatureLink string, temperature *redfish.Temperature) (err error) {
@@ -274,7 +270,7 @@ func (a *Agent) createOrUpdatePowerSubsystem(ctx module.Context, redfishDevice d
 		}
 	}
 
-	return
+	return a.createOrUpdateChassisLed(ctx, redfishDevice, chassis)
 }
 
 func (a *Agent) createOrUpdatePowerIndicatorLED(ctx module.Context, redfishDevice device.RedfishDevice, chassis *redfish.Chassis, parentNode *documents.Node, indicatorLED common.IndicatorLED) (err error) {
@@ -323,6 +319,136 @@ func (a *Agent) createOrUpdatePowerControl(ctx module.Context, redfishDevice dev
 		}
 	}
 
+	if err = a.executor.ExecSync(ctx, functionContext); err != nil {
+		return
+	}
+
+	return a.createPowerControlDetails(ctx, redfishDevice, chassis, powerControlLink, powerControl)
+}
+
+func (a *Agent) createPowerControlDetails(ctx module.Context, redfishDevice device.RedfishDevice, chassis *redfish.Chassis, powerControlLink string, powerControl *redfish.PowerControl) (err error) {
+	parentNode, err := a.getDocument("%s.power.chassis-%s.service.%s.redfish-devices.root", powerControlLink, chassis.UUID, redfishDevice.UUID())
+	if err != nil {
+		return
+	}
+
+	if err = a.createOrUpdatePowerControlStatus(ctx, redfishDevice, chassis, parentNode, powerControlLink, powerControl); err != nil {
+		return
+	}
+
+	if err = a.createOrUpdatePowerControlPhysicalContext(ctx, redfishDevice, chassis, parentNode, powerControlLink, powerControl); err != nil {
+		return
+	}
+
+	if err = a.createOrUpdatePowerControlMetric(ctx, redfishDevice, chassis, parentNode, powerControlLink, powerControl); err != nil {
+		return
+	}
+
+	if err = a.createOrUpdatePowerControlLimit(ctx, redfishDevice, chassis, parentNode, powerControlLink, powerControl); err != nil {
+		return
+	}
+
+	return
+}
+
+func (a *Agent) createOrUpdatePowerControlStatus(ctx module.Context, redfishDevice device.RedfishDevice, chassis *redfish.Chassis, parentNode *documents.Node, powerControlLink string, powerControl *redfish.PowerControl) (err error) {
+	status := &bootstrap.RedfishStatus{Status: powerControl.Status}
+
+	var functionContext *pbtypes.FunctionContext
+	document, err := a.getDocument("status.%s.power.chassis-%s.service.%s.redfish-devices.root", powerControlLink, chassis.UUID, redfishDevice.UUID())
+	if err != nil {
+		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-status", "status", status)
+		if err != nil {
+			return err
+		}
+	} else {
+		functionContext, err = system.UpdateObject(document.Id.String(), status)
+		if err != nil {
+			return err
+		}
+	}
+
+	msg, err := module.ToMessage(functionContext)
+	if err != nil {
+		return
+	}
+
+	ctx.Send(msg)
+
+	return
+}
+
+func (a *Agent) createOrUpdatePowerControlPhysicalContext(ctx module.Context, redfishDevice device.RedfishDevice, chassis *redfish.Chassis, parentNode *documents.Node, powerControlLink string, powerControl *redfish.PowerControl) (err error) {
+	physicalContext := &bootstrap.RedfishPhysicalContext{PhysicalContext: &powerControl.PhysicalContext}
+
+	var functionContext *pbtypes.FunctionContext
+	document, err := a.getDocument("physcial-context.%s.power.chassis-%s.service.%s.redfish-devices.root", powerControlLink, chassis.UUID, redfishDevice.UUID())
+	if err != nil {
+		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-physical-context", "physcial-context", physicalContext)
+		if err != nil {
+			return err
+		}
+	} else {
+		functionContext, err = system.UpdateObject(document.Id.String(), physicalContext)
+		if err != nil {
+			return err
+		}
+	}
+
+	msg, err := module.ToMessage(functionContext)
+	if err != nil {
+		return
+	}
+
+	ctx.Send(msg)
+
+	return
+}
+
+func (a *Agent) createOrUpdatePowerControlMetric(ctx module.Context, redfishDevice device.RedfishDevice, chassis *redfish.Chassis, parentNode *documents.Node, powerControlLink string, powerControl *redfish.PowerControl) (err error) {
+	powerMetric := powerControl.PowerMetrics
+
+	var functionContext *pbtypes.FunctionContext
+	document, err := a.getDocument("power-metric.%s.power.chassis-%s.service.%s.redfish-devices.root", powerControlLink, chassis.UUID, redfishDevice.UUID())
+	if err != nil {
+		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-power-metric", "power-metric", powerMetric)
+		if err != nil {
+			return err
+		}
+	} else {
+		functionContext, err = system.UpdateObject(document.Id.String(), powerMetric)
+		if err != nil {
+			return err
+		}
+	}
+
+	msg, err := module.ToMessage(functionContext)
+	if err != nil {
+		return
+	}
+
+	ctx.Send(msg)
+
+	return
+}
+
+func (a *Agent) createOrUpdatePowerControlLimit(ctx module.Context, redfishDevice device.RedfishDevice, chassis *redfish.Chassis, parentNode *documents.Node, powerControlLink string, powerControl *redfish.PowerControl) (err error) {
+	powerLimit := powerControl.PowerLimit
+
+	var functionContext *pbtypes.FunctionContext
+	document, err := a.getDocument("power-limit.%s.power.chassis-%s.service.%s.redfish-devices.root", powerControlLink, chassis.UUID, redfishDevice.UUID())
+	if err != nil {
+		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-power-limit", "power-limit", powerLimit)
+		if err != nil {
+			return err
+		}
+	} else {
+		functionContext, err = system.UpdateObject(document.Id.String(), powerLimit)
+		if err != nil {
+			return err
+		}
+	}
+
 	msg, err := module.ToMessage(functionContext)
 	if err != nil {
 		return
@@ -352,6 +478,198 @@ func (a *Agent) createOrUpdatePowerSupply(ctx module.Context, redfishDevice devi
 		}
 	}
 
+	if err = a.executor.ExecSync(ctx, functionContext); err != nil {
+		return
+	}
+
+	return a.createPowerSupplyDetails(ctx, redfishDevice, chassis, powerSupplyLink, powerSupply)
+}
+
+func (a *Agent) createPowerSupplyDetails(ctx module.Context, redfishDevice device.RedfishDevice, chassis *redfish.Chassis, powerSupplyLink string, powerSupply *redfish.PowerSupply) (err error) {
+	parentNode, err := a.getDocument("%s.power.chassis-%s.service.%s.redfish-devices.root", powerSupplyLink, chassis.UUID, redfishDevice.UUID())
+	if err != nil {
+		return
+	}
+
+	if err = a.createOrUpdatePowerSupplyStatus(ctx, redfishDevice, chassis, parentNode, powerSupplyLink, powerSupply); err != nil {
+		return
+	}
+
+	if err = a.createOrUpdatePowerSupplyIndicatorLED(ctx, redfishDevice, chassis, parentNode, powerSupplyLink, powerSupply); err != nil {
+		return
+	}
+
+	if err = a.createOrUpdatePowerSupplyLocation(ctx, redfishDevice, chassis, parentNode, powerSupplyLink, powerSupply); err != nil {
+		return
+	}
+
+	return
+}
+
+func (a *Agent) createOrUpdatePowerSupplyStatus(ctx module.Context, redfishDevice device.RedfishDevice, chassis *redfish.Chassis, parentNode *documents.Node, powerSupplyLink string, powerSupply *redfish.PowerSupply) (err error) {
+	status := &bootstrap.RedfishStatus{Status: powerSupply.Status}
+
+	var functionContext *pbtypes.FunctionContext
+	document, err := a.getDocument("status.%s.power.chassis-%s.service.%s.redfish-devices.root", powerSupplyLink, chassis.UUID, redfishDevice.UUID())
+	if err != nil {
+		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-status", "status", status)
+		if err != nil {
+			return err
+		}
+	} else {
+		functionContext, err = system.UpdateObject(document.Id.String(), status)
+		if err != nil {
+			return err
+		}
+	}
+
+	msg, err := module.ToMessage(functionContext)
+	if err != nil {
+		return
+	}
+
+	ctx.Send(msg)
+
+	return
+}
+
+func (a *Agent) createOrUpdatePowerSupplyIndicatorLED(ctx module.Context, redfishDevice device.RedfishDevice, chassis *redfish.Chassis, parentNode *documents.Node, powerSupplyLink string, powerSupply *redfish.PowerSupply) (err error) {
+	led := &bootstrap.RedfishLed{Led: powerSupply.IndicatorLED}
+
+	var functionContext *pbtypes.FunctionContext
+	document, err := a.getDocument("led.%s.power.chassis-%s.service.%s.redfish-devices.root", powerSupplyLink, chassis.UUID, redfishDevice.UUID())
+	if err != nil {
+		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-led", "led", led)
+		if err != nil {
+			return err
+		}
+	} else {
+		functionContext, err = system.UpdateObject(document.Id.String(), led)
+		if err != nil {
+			return err
+		}
+	}
+
+	msg, err := module.ToMessage(functionContext)
+	if err != nil {
+		return
+	}
+
+	ctx.Send(msg)
+
+	return
+}
+
+func (a *Agent) createOrUpdatePowerSupplyLocation(ctx module.Context, redfishDevice device.RedfishDevice, chassis *redfish.Chassis, parentNode *documents.Node, powerSupplyLink string, powerSupply *redfish.PowerSupply) (err error) {
+	location := powerSupply.Location
+
+	var functionContext *pbtypes.FunctionContext
+	document, err := a.getDocument("location.%s.power.chassis-%s.service.%s.redfish-devices.root", powerSupplyLink, chassis.UUID, redfishDevice.UUID())
+	if err != nil {
+		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-location", "location", location)
+		if err != nil {
+			return err
+		}
+	} else {
+		functionContext, err = system.UpdateObject(document.Id.String(), location)
+		if err != nil {
+			return err
+		}
+	}
+
+	if err = a.executor.ExecSync(ctx, functionContext); err != nil {
+		return
+	}
+
+	return a.createOrUpdatePowerSupplyLocationDetails(ctx, redfishDevice, chassis, powerSupplyLink, &location)
+}
+
+func (a *Agent) createOrUpdatePowerSupplyLocationDetails(ctx module.Context, redfishDevice device.RedfishDevice, chassis *redfish.Chassis, powerSupplyLink string, location *common.Location) (err error) {
+	parentNode, err := a.getDocument("location.%s.power.chassis-%s.service.%s.redfish-devices.root", powerSupplyLink, chassis.UUID, redfishDevice.UUID())
+	if err != nil {
+		return
+	}
+
+	if err = a.createOrUpdatePowerSupplyPartLocation(ctx, redfishDevice, chassis, parentNode, powerSupplyLink, &location.PartLocation); err != nil {
+		return
+	}
+
+	if err = a.createOrUpdatePowerSupplyPlacement(ctx, redfishDevice, chassis, parentNode, powerSupplyLink, &location.Placement); err != nil {
+		return
+	}
+
+	if err = a.createOrUpdatePowerSupplyPostalAddress(ctx, redfishDevice, chassis, parentNode, powerSupplyLink, &location.PostalAddress); err != nil {
+		return
+	}
+
+	return a.createOrUpdateChassisSupportedResetTypes(ctx, redfishDevice, chassis)
+}
+
+func (a *Agent) createOrUpdatePowerSupplyPartLocation(ctx module.Context, redfishDevice device.RedfishDevice, chassis *redfish.Chassis, parentNode *documents.Node, powerSupplyLink string, partLocation *common.PartLocation) (err error) {
+	var functionContext *pbtypes.FunctionContext
+	document, err := a.getDocument("part-location.location.%s.power.chassis-%s.service.%s.redfish-devices.root", powerSupplyLink, chassis.UUID, redfishDevice.UUID())
+	if err != nil {
+		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-part-location", "part-location", partLocation)
+		if err != nil {
+			return err
+		}
+	} else {
+		functionContext, err = system.UpdateObject(document.Id.String(), partLocation)
+		if err != nil {
+			return err
+		}
+	}
+
+	msg, err := module.ToMessage(functionContext)
+	if err != nil {
+		return
+	}
+
+	ctx.Send(msg)
+
+	return
+}
+
+func (a *Agent) createOrUpdatePowerSupplyPlacement(ctx module.Context, redfishDevice device.RedfishDevice, chassis *redfish.Chassis, parentNode *documents.Node, powerSupplyLink string, placement *common.Placement) (err error) {
+	var functionContext *pbtypes.FunctionContext
+	document, err := a.getDocument("placement.location.%s.power.chassis-%s.service.%s.redfish-devices.root", powerSupplyLink, chassis.UUID, redfishDevice.UUID())
+	if err != nil {
+		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-placement", "placement", placement)
+		if err != nil {
+			return err
+		}
+	} else {
+		functionContext, err = system.UpdateObject(document.Id.String(), placement)
+		if err != nil {
+			return err
+		}
+	}
+
+	msg, err := module.ToMessage(functionContext)
+	if err != nil {
+		return
+	}
+
+	ctx.Send(msg)
+
+	return
+}
+
+func (a *Agent) createOrUpdatePowerSupplyPostalAddress(ctx module.Context, redfishDevice device.RedfishDevice, chassis *redfish.Chassis, parentNode *documents.Node, powerSupplyLink string, postalAddress *common.PostalAddress) (err error) {
+	var functionContext *pbtypes.FunctionContext
+	document, err := a.getDocument("postal-address.location.%s.power.chassis-%s.service.%s.redfish-devices.root", powerSupplyLink, chassis.UUID, redfishDevice.UUID())
+	if err != nil {
+		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-postal-address", "postal-address", postalAddress)
+		if err != nil {
+			return err
+		}
+	} else {
+		functionContext, err = system.UpdateObject(document.Id.String(), postalAddress)
+		if err != nil {
+			return err
+		}
+	}
+
 	msg, err := module.ToMessage(functionContext)
 	if err != nil {
 		return
@@ -376,6 +694,330 @@ func (a *Agent) createOrUpdateVoltage(ctx module.Context, redfishDevice device.R
 		}
 	} else {
 		functionContext, err = system.UpdateObject(document.Id.String(), voltage)
+		if err != nil {
+			return err
+		}
+	}
+
+	// FIXME: context canceled
+	msg, err := module.ToMessage(functionContext)
+	if err != nil {
+		return
+	}
+
+	ctx.Send(msg)
+
+	return
+
+	// if err = a.executor.ExecSync(ctx, functionContext); err != nil {
+	// 	return
+	// }
+
+	// return a.createOrUpdateVoltageStatus(ctx, redfishDevice, chassis, voltageLink, voltage)
+}
+
+func (a *Agent) createOrUpdateVoltageStatus(ctx module.Context, redfishDevice device.RedfishDevice, chassis *redfish.Chassis, voltageLink string, voltage *redfish.Voltage) (err error) {
+	status := &bootstrap.RedfishStatus{Status: voltage.Status}
+
+	parentNode, err := a.getDocument("%s.power.chassis-%s.service.%s.redfish-devices.root", voltageLink, chassis.UUID, redfishDevice.UUID())
+	if err != nil {
+		return
+	}
+
+	var functionContext *pbtypes.FunctionContext
+	document, err := a.getDocument("status.%s.power.chassis-%s.service.%s.redfish-devices.root", voltageLink, chassis.UUID, redfishDevice.UUID())
+	if err != nil {
+		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-status", "status", status)
+		if err != nil {
+			return err
+		}
+	} else {
+		functionContext, err = system.UpdateObject(document.Id.String(), status)
+		if err != nil {
+			return err
+		}
+	}
+
+	msg, err := module.ToMessage(functionContext)
+	if err != nil {
+		return
+	}
+
+	ctx.Send(msg)
+
+	return
+}
+
+func (a *Agent) createOrUpdateChassisLed(ctx module.Context, redfishDevice device.RedfishDevice, chassis *redfish.Chassis) (err error) {
+	led := &bootstrap.RedfishLed{Led: chassis.IndicatorLED}
+
+	parentNode, err := a.getDocument("chassis-%s.service.%s.redfish-devices.root", chassis.UUID, redfishDevice.UUID())
+	if err != nil {
+		return
+	}
+
+	var functionContext *pbtypes.FunctionContext
+	document, err := a.getDocument("led.chassis-%s.service.%s.redfish-devices.root", chassis.UUID, redfishDevice.UUID())
+	if err != nil {
+		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-led", "led", led)
+		if err != nil {
+			return err
+		}
+	} else {
+		functionContext, err = system.UpdateObject(document.Id.String(), led)
+		if err != nil {
+			return err
+		}
+	}
+
+	msg, err := module.ToMessage(functionContext)
+	if err != nil {
+		return
+	}
+
+	ctx.Send(msg)
+
+	return a.createOrUpdateChassisStatus(ctx, redfishDevice, chassis)
+}
+
+func (a *Agent) createOrUpdateChassisStatus(ctx module.Context, redfishDevice device.RedfishDevice, chassis *redfish.Chassis) (err error) {
+	status := &bootstrap.RedfishStatus{Status: chassis.Status}
+
+	parentNode, err := a.getDocument("chassis-%s.service.%s.redfish-devices.root", chassis.UUID, redfishDevice.UUID())
+	if err != nil {
+		return
+	}
+
+	var functionContext *pbtypes.FunctionContext
+	document, err := a.getDocument("status.chassis-%s.service.%s.redfish-devices.root", chassis.UUID, redfishDevice.UUID())
+	if err != nil {
+		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-status", "status", status)
+		if err != nil {
+			return err
+		}
+	} else {
+		functionContext, err = system.UpdateObject(document.Id.String(), status)
+		if err != nil {
+			return err
+		}
+	}
+
+	msg, err := module.ToMessage(functionContext)
+	if err != nil {
+		return
+	}
+
+	ctx.Send(msg)
+
+	return a.createOrUpdateChassisPowerState(ctx, redfishDevice, chassis)
+}
+
+func (a *Agent) createOrUpdateChassisPowerState(ctx module.Context, redfishDevice device.RedfishDevice, chassis *redfish.Chassis) (err error) {
+	powerState := &bootstrap.RedfishPowerState{PowerState: chassis.PowerState}
+
+	parentNode, err := a.getDocument("chassis-%s.service.%s.redfish-devices.root", chassis.UUID, redfishDevice.UUID())
+	if err != nil {
+		return
+	}
+
+	var functionContext *pbtypes.FunctionContext
+	document, err := a.getDocument("power-state.chassis-%s.service.%s.redfish-devices.root", chassis.UUID, redfishDevice.UUID())
+	if err != nil {
+		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-power-state", "power-state", powerState)
+		if err != nil {
+			return err
+		}
+	} else {
+		functionContext, err = system.UpdateObject(document.Id.String(), powerState)
+		if err != nil {
+			return err
+		}
+	}
+
+	msg, err := module.ToMessage(functionContext)
+	if err != nil {
+		return
+	}
+
+	ctx.Send(msg)
+
+	return a.createOrUpdateChassisPhysicalSecurity(ctx, redfishDevice, chassis)
+}
+
+func (a *Agent) createOrUpdateChassisPhysicalSecurity(ctx module.Context, redfishDevice device.RedfishDevice, chassis *redfish.Chassis) (err error) {
+	physicalSecurity := chassis.PhysicalSecurity
+
+	parentNode, err := a.getDocument("chassis-%s.service.%s.redfish-devices.root", chassis.UUID, redfishDevice.UUID())
+	if err != nil {
+		return
+	}
+
+	var functionContext *pbtypes.FunctionContext
+	document, err := a.getDocument("physical-security.chassis-%s.service.%s.redfish-devices.root", chassis.UUID, redfishDevice.UUID())
+	if err != nil {
+		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-physical-security", "physical-security", physicalSecurity)
+		if err != nil {
+			return err
+		}
+	} else {
+		functionContext, err = system.UpdateObject(document.Id.String(), physicalSecurity)
+		if err != nil {
+			return err
+		}
+	}
+
+	msg, err := module.ToMessage(functionContext)
+	if err != nil {
+		return
+	}
+
+	ctx.Send(msg)
+
+	return a.createOrUpdateChassisLocation(ctx, redfishDevice, chassis)
+}
+
+func (a *Agent) createOrUpdateChassisLocation(ctx module.Context, redfishDevice device.RedfishDevice, chassis *redfish.Chassis) (err error) {
+	location := chassis.Location
+
+	parentNode, err := a.getDocument("chassis-%s.service.%s.redfish-devices.root", chassis.UUID, redfishDevice.UUID())
+	if err != nil {
+		return
+	}
+
+	var functionContext *pbtypes.FunctionContext
+	document, err := a.getDocument("location.chassis-%s.service.%s.redfish-devices.root", chassis.UUID, redfishDevice.UUID())
+	if err != nil {
+		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-location", "location", location)
+		if err != nil {
+			return err
+		}
+	} else {
+		functionContext, err = system.UpdateObject(document.Id.String(), location)
+		if err != nil {
+			return err
+		}
+	}
+
+	if err = a.executor.ExecSync(ctx, functionContext); err != nil {
+		return
+	}
+
+	return a.createOrUpdateChassisLocationDetails(ctx, redfishDevice, chassis, &location)
+}
+
+func (a *Agent) createOrUpdateChassisLocationDetails(ctx module.Context, redfishDevice device.RedfishDevice, chassis *redfish.Chassis, location *common.Location) (err error) {
+	parentNode, err := a.getDocument("location.chassis-%s.service.%s.redfish-devices.root", chassis.UUID, redfishDevice.UUID())
+	if err != nil {
+		return
+	}
+
+	if err = a.createOrUpdatePartLocation(ctx, redfishDevice, chassis, parentNode, &location.PartLocation); err != nil {
+		return
+	}
+
+	if err = a.createOrUpdatePlacement(ctx, redfishDevice, chassis, parentNode, &location.Placement); err != nil {
+		return
+	}
+
+	if err = a.createOrUpdatePostalAddress(ctx, redfishDevice, chassis, parentNode, &location.PostalAddress); err != nil {
+		return
+	}
+
+	return a.createOrUpdateChassisSupportedResetTypes(ctx, redfishDevice, chassis)
+}
+
+func (a *Agent) createOrUpdatePartLocation(ctx module.Context, redfishDevice device.RedfishDevice, chassis *redfish.Chassis, parentNode *documents.Node, partLocation *common.PartLocation) (err error) {
+	var functionContext *pbtypes.FunctionContext
+	document, err := a.getDocument("part-location.location.chassis-%s.service.%s.redfish-devices.root", chassis.UUID, redfishDevice.UUID())
+	if err != nil {
+		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-part-location", "part-location", partLocation)
+		if err != nil {
+			return err
+		}
+	} else {
+		functionContext, err = system.UpdateObject(document.Id.String(), partLocation)
+		if err != nil {
+			return err
+		}
+	}
+
+	msg, err := module.ToMessage(functionContext)
+	if err != nil {
+		return
+	}
+
+	ctx.Send(msg)
+
+	return
+}
+
+func (a *Agent) createOrUpdatePlacement(ctx module.Context, redfishDevice device.RedfishDevice, chassis *redfish.Chassis, parentNode *documents.Node, placement *common.Placement) (err error) {
+	var functionContext *pbtypes.FunctionContext
+	document, err := a.getDocument("placement.location.chassis-%s.service.%s.redfish-devices.root", chassis.UUID, redfishDevice.UUID())
+	if err != nil {
+		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-placement", "placement", placement)
+		if err != nil {
+			return err
+		}
+	} else {
+		functionContext, err = system.UpdateObject(document.Id.String(), placement)
+		if err != nil {
+			return err
+		}
+	}
+
+	msg, err := module.ToMessage(functionContext)
+	if err != nil {
+		return
+	}
+
+	ctx.Send(msg)
+
+	return
+}
+
+func (a *Agent) createOrUpdatePostalAddress(ctx module.Context, redfishDevice device.RedfishDevice, chassis *redfish.Chassis, parentNode *documents.Node, postalAddress *common.PostalAddress) (err error) {
+	var functionContext *pbtypes.FunctionContext
+	document, err := a.getDocument("postal-address.location.chassis-%s.service.%s.redfish-devices.root", chassis.UUID, redfishDevice.UUID())
+	if err != nil {
+		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-postal-address", "postal-address", postalAddress)
+		if err != nil {
+			return err
+		}
+	} else {
+		functionContext, err = system.UpdateObject(document.Id.String(), postalAddress)
+		if err != nil {
+			return err
+		}
+	}
+
+	msg, err := module.ToMessage(functionContext)
+	if err != nil {
+		return
+	}
+
+	ctx.Send(msg)
+
+	return
+}
+
+func (a *Agent) createOrUpdateChassisSupportedResetTypes(ctx module.Context, redfishDevice device.RedfishDevice, chassis *redfish.Chassis) (err error) {
+	supportedResetTypes := &bootstrap.RedfishSupportedResetTypes{SupportedResetTypes: chassis.SupportedResetTypes}
+
+	parentNode, err := a.getDocument("chassis-%s.service.%s.redfish-devices.root", chassis.UUID, redfishDevice.UUID())
+	if err != nil {
+		return
+	}
+
+	var functionContext *pbtypes.FunctionContext
+	document, err := a.getDocument("supported-reset-types.chassis-%s.service.%s.redfish-devices.root", chassis.UUID, redfishDevice.UUID())
+	if err != nil {
+		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-supported-reset-types", "supported-reset-types", supportedResetTypes)
+		if err != nil {
+			return err
+		}
+	} else {
+		functionContext, err = system.UpdateObject(document.Id.String(), supportedResetTypes)
 		if err != nil {
 			return err
 		}
