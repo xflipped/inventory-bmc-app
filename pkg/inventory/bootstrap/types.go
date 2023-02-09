@@ -75,6 +75,26 @@ type RedfishPcieInterface struct {
 	*redfish.PCIeInterface
 }
 
+type RedfishPowerState struct {
+	PowerState redfish.PowerState `json:"powerState"`
+}
+
+type RedfishPowerRestorePolicy struct {
+	PowerRestorePolicy redfish.PowerState `json:"powerRestorePolicy"`
+}
+
+type RedfishProcessorSummary struct {
+	*redfish.ProcessorSummary
+}
+
+type RedfishMemorySummary struct {
+	*redfish.MemorySummary
+}
+
+type RedfishHostWatchdogTimer struct {
+	*redfish.WatchdogTimer
+}
+
 type RedfishThermal struct {
 	ID          string `json:"Id,omitempty"`
 	Name        string `json:"Name,omitempty"`
@@ -209,6 +229,31 @@ func createRedfishPCIeInterface(ctx context.Context) (err error) {
 	return createType(ctx, pt)
 }
 
+func createRedfishPowerState(ctx context.Context) (err error) {
+	pt := types.ReflectType(&RedfishPowerState{})
+	return createType(ctx, pt)
+}
+
+func createRedfishPowerRestorePolicy(ctx context.Context) (err error) {
+	pt := types.ReflectType(&RedfishPowerRestorePolicy{})
+	return createType(ctx, pt)
+}
+
+func createRedfishProcessorSummary(ctx context.Context) (err error) {
+	pt := types.ReflectType(&RedfishProcessorSummary{})
+	return createType(ctx, pt)
+}
+
+func createRedfishMemorySummary(ctx context.Context) (err error) {
+	pt := types.ReflectType(&RedfishMemorySummary{})
+	return createType(ctx, pt)
+}
+
+func createRedfishHostWatchdogTimer(ctx context.Context) (err error) {
+	pt := types.ReflectType(&RedfishHostWatchdogTimer{})
+	return createType(ctx, pt)
+}
+
 func createRedfishThermal(ctx context.Context) (err error) {
 	pt := types.ReflectType(&RedfishThermal{})
 	return createType(ctx, pt)
@@ -302,6 +347,21 @@ func createTypes(ctx context.Context) (err error) {
 		return
 	}
 	if err = createRedfishPCIeInterface(ctx); err != nil {
+		return
+	}
+	if err = createRedfishPowerState(ctx); err != nil {
+		return
+	}
+	if err = createRedfishPowerRestorePolicy(ctx); err != nil {
+		return
+	}
+	if err = createRedfishProcessorSummary(ctx); err != nil {
+		return
+	}
+	if err = createRedfishMemorySummary(ctx); err != nil {
+		return
+	}
+	if err = createRedfishHostWatchdogTimer(ctx); err != nil {
 		return
 	}
 	if err = createRedfishThermal(ctx); err != nil {

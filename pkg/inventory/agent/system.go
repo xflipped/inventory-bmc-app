@@ -328,8 +328,7 @@ func (a *Agent) createOrUpdatePCIeDevices(ctx module.Context, redfishDevice devi
 		}
 	}
 
-	// TODO: return createMemories, createProcessors, etc.
-	return
+	return a.createOrUpdateSystemPowerState(ctx, redfishDevice, computerSystem)
 }
 
 func (a *Agent) createOrUpdatePCIeDevice(ctx module.Context, redfishDevice device.RedfishDevice, parentNode *documents.Node, computerSystem *redfish.ComputerSystem, device *redfish.PCIeDevice) (err error) {
@@ -417,6 +416,225 @@ func (a *Agent) createOrUpdatePCIeDeviceInterface(ctx module.Context, redfishDev
 
 	ctx.Send(msg)
 
+	return
+}
+
+func (a *Agent) createOrUpdateSystemPowerState(ctx module.Context, redfishDevice device.RedfishDevice, computerSystem *redfish.ComputerSystem) (err error) {
+	powerState := &bootstrap.RedfishPowerState{PowerState: computerSystem.PowerState}
+
+	parentNode, err := a.getDocument("system-%s.service.%s.redfish-devices.root", computerSystem.UUID, redfishDevice.UUID())
+	if err != nil {
+		return
+	}
+
+	var functionContext *pbtypes.FunctionContext
+	document, err := a.getDocument("power-state.system-%s.service.%s.redfish-devices.root", computerSystem.UUID, redfishDevice.UUID())
+	if err != nil {
+		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-power-state", "power-state", powerState)
+		if err != nil {
+			return err
+		}
+	} else {
+		functionContext, err = system.UpdateObject(document.Id.String(), powerState)
+		if err != nil {
+			return err
+		}
+	}
+
+	msg, err := module.ToMessage(functionContext)
+	if err != nil {
+		return
+	}
+
+	ctx.Send(msg)
+
+	return a.createOrUpdateSystemPowerRestorePolicy(ctx, redfishDevice, computerSystem)
+}
+
+func (a *Agent) createOrUpdateSystemPowerRestorePolicy(ctx module.Context, redfishDevice device.RedfishDevice, computerSystem *redfish.ComputerSystem) (err error) {
+	powerRestorePolicy := &bootstrap.RedfishPowerRestorePolicy{PowerRestorePolicy: computerSystem.PowerRestorePolicy}
+
+	parentNode, err := a.getDocument("system-%s.service.%s.redfish-devices.root", computerSystem.UUID, redfishDevice.UUID())
+	if err != nil {
+		return
+	}
+
+	var functionContext *pbtypes.FunctionContext
+	document, err := a.getDocument("power-restore-policy.system-%s.service.%s.redfish-devices.root", computerSystem.UUID, redfishDevice.UUID())
+	if err != nil {
+		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-power-restore-policy", "power-restore-policy", powerRestorePolicy)
+		if err != nil {
+			return err
+		}
+	} else {
+		functionContext, err = system.UpdateObject(document.Id.String(), powerRestorePolicy)
+		if err != nil {
+			return err
+		}
+	}
+
+	msg, err := module.ToMessage(functionContext)
+	if err != nil {
+		return
+	}
+
+	ctx.Send(msg)
+
+	return a.createOrUpdateProcessorSummary(ctx, redfishDevice, computerSystem)
+}
+
+func (a *Agent) createOrUpdateProcessorSummary(ctx module.Context, redfishDevice device.RedfishDevice, computerSystem *redfish.ComputerSystem) (err error) {
+	processorSummary := computerSystem.ProcessorSummary
+
+	parentNode, err := a.getDocument("system-%s.service.%s.redfish-devices.root", computerSystem.UUID, redfishDevice.UUID())
+	if err != nil {
+		return
+	}
+
+	var functionContext *pbtypes.FunctionContext
+	document, err := a.getDocument("processor-summary.system-%s.service.%s.redfish-devices.root", computerSystem.UUID, redfishDevice.UUID())
+	if err != nil {
+		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-processor-summary", "processor-summary", processorSummary)
+		if err != nil {
+			return err
+		}
+	} else {
+		functionContext, err = system.UpdateObject(document.Id.String(), processorSummary)
+		if err != nil {
+			return err
+		}
+	}
+
+	if err = a.executor.ExecSync(ctx, functionContext); err != nil {
+		return
+	}
+
+	return a.createOrUpdateProcessorSummaryStatus(ctx, redfishDevice, computerSystem, &processorSummary)
+}
+
+func (a *Agent) createOrUpdateProcessorSummaryStatus(ctx module.Context, redfishDevice device.RedfishDevice, computerSystem *redfish.ComputerSystem, processorSummary *redfish.ProcessorSummary) (err error) {
+	status := &bootstrap.RedfishStatus{Status: processorSummary.Status}
+
+	parentNode, err := a.getDocument("processor-summary.system-%s.service.%s.redfish-devices.root", computerSystem.UUID, redfishDevice.UUID())
+	if err != nil {
+		return
+	}
+
+	var functionContext *pbtypes.FunctionContext
+	document, err := a.getDocument("status.processor-summary.system-%s.service.%s.redfish-devices.root", computerSystem.UUID, redfishDevice.UUID())
+	if err != nil {
+		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-status", "status", status)
+		if err != nil {
+			return err
+		}
+	} else {
+		functionContext, err = system.UpdateObject(document.Id.String(), status)
+		if err != nil {
+			return err
+		}
+	}
+
+	msg, err := module.ToMessage(functionContext)
+	if err != nil {
+		return
+	}
+
+	ctx.Send(msg)
+
+	return a.createOrUpdateMemorySummary(ctx, redfishDevice, computerSystem)
+}
+
+func (a *Agent) createOrUpdateMemorySummary(ctx module.Context, redfishDevice device.RedfishDevice, computerSystem *redfish.ComputerSystem) (err error) {
+	memorySummary := computerSystem.MemorySummary
+
+	parentNode, err := a.getDocument("system-%s.service.%s.redfish-devices.root", computerSystem.UUID, redfishDevice.UUID())
+	if err != nil {
+		return
+	}
+
+	var functionContext *pbtypes.FunctionContext
+	document, err := a.getDocument("memory-summary.system-%s.service.%s.redfish-devices.root", computerSystem.UUID, redfishDevice.UUID())
+	if err != nil {
+		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-memory-summary", "memory-summary", memorySummary)
+		if err != nil {
+			return err
+		}
+	} else {
+		functionContext, err = system.UpdateObject(document.Id.String(), memorySummary)
+		if err != nil {
+			return err
+		}
+	}
+
+	if err = a.executor.ExecSync(ctx, functionContext); err != nil {
+		return
+	}
+
+	return a.createOrUpdateMemorySummaryStatus(ctx, redfishDevice, computerSystem, &memorySummary)
+}
+
+func (a *Agent) createOrUpdateMemorySummaryStatus(ctx module.Context, redfishDevice device.RedfishDevice, computerSystem *redfish.ComputerSystem, memorySummary *redfish.MemorySummary) (err error) {
+	status := &bootstrap.RedfishStatus{Status: memorySummary.Status}
+
+	parentNode, err := a.getDocument("memory-summary.system-%s.service.%s.redfish-devices.root", computerSystem.UUID, redfishDevice.UUID())
+	if err != nil {
+		return
+	}
+
+	var functionContext *pbtypes.FunctionContext
+	document, err := a.getDocument("status.memory-summary.system-%s.service.%s.redfish-devices.root", computerSystem.UUID, redfishDevice.UUID())
+	if err != nil {
+		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-status", "status", status)
+		if err != nil {
+			return err
+		}
+	} else {
+		functionContext, err = system.UpdateObject(document.Id.String(), status)
+		if err != nil {
+			return err
+		}
+	}
+
+	msg, err := module.ToMessage(functionContext)
+	if err != nil {
+		return
+	}
+
+	ctx.Send(msg)
+
+	return a.createOrUpdateHostWatchdogTimer(ctx, redfishDevice, computerSystem)
+}
+
+func (a *Agent) createOrUpdateHostWatchdogTimer(ctx module.Context, redfishDevice device.RedfishDevice, computerSystem *redfish.ComputerSystem) (err error) {
+	hostWatchdogTimer := computerSystem.HostWatchdogTimer
+
+	parentNode, err := a.getDocument("system-%s.service.%s.redfish-devices.root", computerSystem.UUID, redfishDevice.UUID())
+	if err != nil {
+		return
+	}
+
+	var functionContext *pbtypes.FunctionContext
+	document, err := a.getDocument("host-watchdog-timer.system-%s.service.%s.redfish-devices.root", computerSystem.UUID, redfishDevice.UUID())
+	if err != nil {
+		functionContext, err = system.CreateChild(parentNode.Id.String(), "types/redfish-host-watchdog-timer", "host-watchdog-timer", hostWatchdogTimer)
+		if err != nil {
+			return err
+		}
+	} else {
+		functionContext, err = system.UpdateObject(document.Id.String(), hostWatchdogTimer)
+		if err != nil {
+			return err
+		}
+	}
+
+	msg, err := module.ToMessage(functionContext)
+	if err != nil {
+		return
+	}
+
+	ctx.Send(msg)
+
+	// TODO: return createMemories, createProcessors, etc.
 	return
 }
 
