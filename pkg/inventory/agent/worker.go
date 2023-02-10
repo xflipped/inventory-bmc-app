@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"sync"
 
 	"git.fg-tech.ru/listware/go-core/pkg/client/system"
 	"git.fg-tech.ru/listware/go-core/pkg/module"
@@ -67,6 +68,14 @@ func (a *Agent) createOrUpdateService(ctx module.Context, redfishDevice device.R
 		return
 	}
 
-	// create/update systems service
-	return a.createOrUpdateSystems(ctx, redfishDevice, service)
+	var wg sync.WaitGroup
+
+	wg.Add(3)
+	go a.createOrUpdateSystems(ctx, redfishDevice, service, &wg)
+	go a.createOrUpdateChasseez(ctx, redfishDevice, service, &wg)
+	go a.createOrUpdateManagers(ctx, redfishDevice, service, &wg)
+
+	wg.Wait()
+
+	return
 }

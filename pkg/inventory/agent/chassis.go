@@ -4,6 +4,7 @@ package agent
 
 import (
 	"fmt"
+	"sync"
 
 	"git.fg-tech.ru/listware/cmdb/pkg/cmdb/documents"
 	"git.fg-tech.ru/listware/go-core/pkg/client/system"
@@ -16,7 +17,9 @@ import (
 	"github.com/stmcginnis/gofish/redfish"
 )
 
-func (a *Agent) createOrUpdateChasseez(ctx module.Context, redfishDevice device.RedfishDevice, service *gofish.Service) (err error) {
+func (a *Agent) createOrUpdateChasseez(ctx module.Context, redfishDevice device.RedfishDevice, service *gofish.Service, wg *sync.WaitGroup) (err error) {
+	defer wg.Done()
+
 	parentNode, err := a.getDocument("service.%s.redfish-devices.root", redfishDevice.UUID())
 	if err != nil {
 		return
@@ -33,9 +36,7 @@ func (a *Agent) createOrUpdateChasseez(ctx module.Context, redfishDevice device.
 		}
 	}
 
-	// create/update managers
-	// TODO: run in parallel
-	return a.createOrUpdateManagers(ctx, redfishDevice, service)
+	return
 }
 
 // TODO: check Chassis & RedfishDevice UUID, now they are the same
@@ -140,6 +141,7 @@ func (a *Agent) createOrUpdateThermalTemperature(ctx module.Context, redfishDevi
 		}
 	}
 
+	// FIXME
 	if err = a.executor.ExecSync(ctx, functionContext); err != nil {
 		return
 	}
@@ -699,21 +701,12 @@ func (a *Agent) createOrUpdateVoltage(ctx module.Context, redfishDevice device.R
 		}
 	}
 
-	// FIXME: context canceled
-	msg, err := module.ToMessage(functionContext)
-	if err != nil {
+	// FIXME
+	if err = a.executor.ExecSync(ctx, functionContext); err != nil {
 		return
 	}
 
-	ctx.Send(msg)
-
-	return
-
-	// if err = a.executor.ExecSync(ctx, functionContext); err != nil {
-	// 	return
-	// }
-
-	// return a.createOrUpdateVoltageStatus(ctx, redfishDevice, chassis, voltageLink, voltage)
+	return a.createOrUpdateVoltageStatus(ctx, redfishDevice, chassis, voltageLink, voltage)
 }
 
 func (a *Agent) createOrUpdateVoltageStatus(ctx module.Context, redfishDevice device.RedfishDevice, chassis *redfish.Chassis, voltageLink string, voltage *redfish.Voltage) (err error) {

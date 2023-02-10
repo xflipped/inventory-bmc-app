@@ -4,6 +4,7 @@ package agent
 
 import (
 	"fmt"
+	"sync"
 
 	"git.fg-tech.ru/listware/cmdb/pkg/cmdb/documents"
 	"git.fg-tech.ru/listware/go-core/pkg/client/system"
@@ -15,7 +16,9 @@ import (
 	"github.com/stmcginnis/gofish/redfish"
 )
 
-func (a *Agent) createOrUpdateSystems(ctx module.Context, redfishDevice device.RedfishDevice, service *gofish.Service) (err error) {
+func (a *Agent) createOrUpdateSystems(ctx module.Context, redfishDevice device.RedfishDevice, service *gofish.Service, wg *sync.WaitGroup) (err error) {
+	defer wg.Done()
+
 	parentNode, err := a.getDocument("service.%s.redfish-devices.root", redfishDevice.UUID())
 	if err != nil {
 		return
@@ -32,9 +35,7 @@ func (a *Agent) createOrUpdateSystems(ctx module.Context, redfishDevice device.R
 		}
 	}
 
-	// create/update chassis
-	// TODO: run in parallel
-	return a.createOrUpdateChasseez(ctx, redfishDevice, service)
+	return
 }
 
 func (a *Agent) createOrUpdateSystem(ctx module.Context, redfishDevice device.RedfishDevice, parentNode *documents.Node, computerSystem *redfish.ComputerSystem) (err error) {

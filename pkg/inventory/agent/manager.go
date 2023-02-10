@@ -4,6 +4,7 @@ package agent
 
 import (
 	"fmt"
+	"sync"
 
 	"git.fg-tech.ru/listware/cmdb/pkg/cmdb/documents"
 	"git.fg-tech.ru/listware/go-core/pkg/client/system"
@@ -15,7 +16,9 @@ import (
 	"github.com/stmcginnis/gofish/redfish"
 )
 
-func (a *Agent) createOrUpdateManagers(ctx module.Context, redfishDevice device.RedfishDevice, service *gofish.Service) (err error) {
+func (a *Agent) createOrUpdateManagers(ctx module.Context, redfishDevice device.RedfishDevice, service *gofish.Service, wg *sync.WaitGroup) (err error) {
+	defer wg.Done()
+
 	parentNode, err := a.getDocument("service.%s.redfish-devices.root", redfishDevice.UUID())
 	if err != nil {
 		return
