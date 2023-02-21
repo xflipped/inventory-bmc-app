@@ -25,7 +25,7 @@ const (
 	pcieMask                   = "%s.system-%s.service.*[?@._id == '%s'?].objects.root"
 	pcieStatusMask             = "status.%s.system-%s.service.*[?@._id == '%s'?].objects.root"
 	pcieInterfaceMask          = "pcie-interface.%s.system-%s.service.*[?@._id == '%s'?].objects.root"
-	powerStateMask             = "power-state.%s.system-%s.service.*[?@._id == '%s'?].objects.root"
+	powerStateMask             = "power-state.system-%s.service.*[?@._id == '%s'?].objects.root"
 	powerRestoreStateMask      = "power-restore-policy.system-%s.service.*[?@._id == '%s'?].objects.root"
 	processorSummaryMask       = "processor-summary.system-%s.service.*[?@._id == '%s'?].objects.root"
 	statusProcessorSummaryMask = "status.processor-summary.system-%s.service.*[?@._id == '%s'?].objects.root"
