@@ -23,13 +23,13 @@ const (
 
 const (
 	RedfishDevicesLink    = "redfish-devices"
-	FunctionContainerLink = "redfish"
+	FunctionContainerLink = "discovery-bmc"
 	FunctionLink          = "discovery"
 )
 
 const (
 	RedfishDevicesPath    = "redfish-devices.root"
 	FunctionsPath         = "functions.root"
-	FunctionContainerPath = "redfish.functions.root"
-	FunctionPath          = "discovery.redfish.functions.root"
+	FunctionContainerPath = "discovery-bmc.functions.root"
+	FunctionPath          = "discovery.discovery-bmc.functions.root"
 )

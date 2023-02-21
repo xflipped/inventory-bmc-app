@@ -3,33 +3,17 @@
 package agent
 
 import (
-	"encoding/json"
-
 	"git.fg-tech.ru/listware/proto/sdk/pbtypes"
 	"github.com/foliagecp/inventory-bmc-app/pkg/inventory/agent/types"
 )
 
-type Request struct {
-	Query string `json:"query"`
-	Name  string `json:"name"`
-}
-
-func prepareFunc(id string, r Request) (fc *pbtypes.FunctionContext, err error) {
-	ft := &pbtypes.FunctionType{
-		Namespace: types.Namespace,
-		Type:      types.FunctionPath,
-	}
-
+func PrepareInventoryFunc(id string) (fc *pbtypes.FunctionContext, err error) {
 	fc = &pbtypes.FunctionContext{
-		Id:           id,
-		FunctionType: ft,
+		Id: id,
+		FunctionType: &pbtypes.FunctionType{
+			Namespace: types.Namespace,
+			Type:      types.InventoryFunctionPath,
+		},
 	}
-	fc.Value, err = json.Marshal(r)
 	return
-}
-
-// genFunction generate function call with object uuid and qdsl
-func genFunction(id, query string) (*pbtypes.FunctionContext, error) {
-	r := Request{Query: query}
-	return prepareFunc(id, r)
 }

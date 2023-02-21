@@ -30,11 +30,11 @@ func register(ctx context.Context, exec executor.Executor) (err error) {
 	return exec.ExecSync(ctx, message)
 }
 
-func Run() (err error) {
-	exec, err := executor.New(executor.WithTimeout(time.Second * 30))
+func Run(ctx context.Context) (err error) {
+	exec, err := executor.New(executor.WithTimeout(time.Minute))
 	if err != nil {
 		return
 	}
 	defer exec.Close()
-	return register(context.Background(), exec)
+	return register(ctx, exec)
 }

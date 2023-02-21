@@ -11,7 +11,7 @@ import (
 	"github.com/foliagecp/inventory-bmc-app/pkg/discovery/agent/types"
 )
 
-func createDiscoverFunctionObject(ctx context.Context) (err error) {
+func createDiscoveryFunctionObject(ctx context.Context) (err error) {
 	// check if object exists
 	elements, err := qdsl.Qdsl(ctx, types.FunctionPath)
 	if err != nil {
