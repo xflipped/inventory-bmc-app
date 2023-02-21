@@ -22,9 +22,9 @@ type Agent struct {
 }
 
 // Run agent
-func Run() (err error) {
+func Run(ctx context.Context) (err error) {
 	a := &Agent{}
-	a.ctx, a.cancel = context.WithCancel(context.Background())
+	a.ctx, a.cancel = context.WithCancel(ctx)
 
 	if a.executor, err = executor.New(); err != nil {
 		return

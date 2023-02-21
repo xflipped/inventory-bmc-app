@@ -3,6 +3,8 @@
 package agent
 
 import (
+	"net/url"
+
 	"git.fg-tech.ru/listware/go-core/pkg/client/system"
 	"git.fg-tech.ru/listware/proto/sdk/pbtypes"
 	"github.com/foliagecp/inventory-bmc-app/pkg/discovery/agent/types"
@@ -50,7 +52,14 @@ func (a *Agent) createOrUpdate(m *ssdp.AliveMessage) (err error) {
 		return
 	}
 
-	redfishDevice := description.ToDevice(m.Header().Get("Al"))
+	u, err := url.Parse(description.Device.PresentationURL)
+	if err != nil {
+		return
+	}
+
+	u.Scheme = "https"
+
+	redfishDevice := description.ToDevice(u.String())
 
 	var functionContext *pbtypes.FunctionContext
 	redfishDeviceObject, err := a.getDocument("%s.redfish-devices.root", redfishDevice.UUID())

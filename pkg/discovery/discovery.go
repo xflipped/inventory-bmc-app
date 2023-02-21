@@ -23,17 +23,17 @@ func init() {
 			Name:        "bootstrap",
 			Description: "Bootstrap discovery",
 			Action: func(ctx *cli.Context) (err error) {
-				return bootstrap.Run()
+				return bootstrap.Run(ctx.Context)
 			},
 		},
 		&cli.Command{
 			Name:        "run",
 			Description: "Run discovery",
 			Action: func(ctx *cli.Context) (err error) {
-				if err = bootstrap.Run(); err != nil {
+				if err = bootstrap.Run(ctx.Context); err != nil {
 					return
 				}
-				return agent.Run()
+				return agent.Run(ctx.Context)
 			},
 		},
 	}
