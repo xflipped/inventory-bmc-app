@@ -3,15 +3,16 @@
 package agent
 
 import (
+	"context"
 	"fmt"
 
 	"git.fg-tech.ru/listware/cmdb/pkg/cmdb/documents"
 	"git.fg-tech.ru/listware/cmdb/pkg/cmdb/qdsl"
 )
 
-func (a *Agent) getDocument(format string, args ...any) (document *documents.Node, err error) {
+func getDocument(ctx context.Context, format string, args ...any) (document *documents.Node, err error) {
 	query := fmt.Sprintf(format, args...)
-	documents, err := qdsl.Qdsl(a.ctx, query, qdsl.WithKey(), qdsl.WithId(), qdsl.WithType())
+	documents, err := qdsl.Qdsl(ctx, query, qdsl.WithKey(), qdsl.WithId(), qdsl.WithType(), qdsl.WithLinkId())
 	if err != nil {
 		return
 	}
@@ -20,4 +21,8 @@ func (a *Agent) getDocument(format string, args ...any) (document *documents.Nod
 	}
 	err = fmt.Errorf("document '%s' not found", query)
 	return
+}
+
+func (a *Agent) getDocument(format string, args ...any) (document *documents.Node, err error) {
+	return getDocument(a.ctx, format, args...)
 }

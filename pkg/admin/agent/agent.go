@@ -4,15 +4,14 @@ package agent
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"git.fg-tech.ru/listware/cmdb/pkg/cmdb/documents"
 	"git.fg-tech.ru/listware/cmdb/pkg/cmdb/qdsl"
 	"git.fg-tech.ru/listware/go-core/pkg/client/system"
 	"git.fg-tech.ru/listware/go-core/pkg/executor"
-	"git.fg-tech.ru/listware/proto/sdk/pbtypes"
 	"github.com/foliagecp/inventory-bmc-app/pkg/discovery/agent/types/redfish/device"
+	"github.com/foliagecp/inventory-bmc-app/pkg/inventory/agent"
 	"github.com/foliagecp/inventory-bmc-app/pkg/inventory/agent/types"
 	"github.com/sirupsen/logrus"
 )
@@ -38,10 +37,11 @@ func ChangeCredentials(ctx context.Context, query, login, password string) (err 
 	if err != nil {
 		return
 	}
+	defer executor.Close()
 
 	log.Infof("Query: %s", query)
 
-	nodes, err := qdsl.Qdsl(ctx, query, qdsl.WithId(), qdsl.WithObject(), qdsl.WithType(), qdsl.WithKey())
+	nodes, err := qdsl.Qdsl(ctx, query, qdsl.WithId(), qdsl.WithType())
 	if err != nil {
 		return
 	}
@@ -58,7 +58,7 @@ func ChangeCredentials(ctx context.Context, query, login, password string) (err 
 			return
 		}
 
-		if err = createOrUpdateLink(ctx, executor, node); err != nil {
+		if err = executeInventory(ctx, executor, node); err != nil {
 			return
 		}
 	}
@@ -67,15 +67,12 @@ func ChangeCredentials(ctx context.Context, query, login, password string) (err 
 }
 
 func updateCredentials(ctx context.Context, executor executor.Executor, node *documents.Node, login, password string) (err error) {
-	var redfishDevice device.RedfishDevice
-	if err = json.Unmarshal(node.Object, &redfishDevice); err != nil {
-		return
+	redfishDevice := device.RedfishDevice{
+		Login:    login,
+		Password: password,
 	}
 
-	redfishDevice.Login = login
-	redfishDevice.Password = password
-
-	log.Infof("update uuid: %s cmdb id: %s", redfishDevice.UUID(), node.Id)
+	log.Infof("update document: %s", node.Id)
 
 	// pass/login from: update, not replace
 	functionContext, err := system.UpdateObject(node.Id.String(), redfishDevice)
@@ -86,34 +83,10 @@ func updateCredentials(ctx context.Context, executor executor.Executor, node *do
 	return executor.ExecSync(ctx, functionContext)
 }
 
-func createOrUpdateLink(ctx context.Context, executor executor.Executor, node *documents.Node) (err error) {
-	var functionContext *pbtypes.FunctionContext
-
-	route := &pbtypes.FunctionRoute{
-		Url:             "http://inventory-bmc:31001/statefun",
-		ExecuteOnCreate: true,
-		ExecuteOnUpdate: true,
+func executeInventory(ctx context.Context, executor executor.Executor, node *documents.Node) (err error) {
+	functionContext, err := agent.PrepareInventoryFunc(node.Id.String())
+	if err != nil {
+		return
 	}
-
-	query := fmt.Sprintf("%s.%s", node.Key, types.FunctionPath)
-
-	if linkDocument, err := getDocument(ctx, query); err == nil {
-		functionContext, err = system.UpdateAdvancedLink(linkDocument.LinkId.String(), route)
-		if err != nil {
-			return err
-		}
-	} else {
-		log.Error(err)
-		function, err := getDocument(ctx, types.FunctionPath)
-		if err != nil {
-			return err
-		}
-
-		functionContext, err = system.CreateLink(function.Id.String(), node.Id.String(), node.Key, function.Type, route)
-		if err != nil {
-			return err
-		}
-	}
-
-	return executor.ExecSync(ctx, functionContext)
+	return executor.ExecAsync(ctx, functionContext)
 }
