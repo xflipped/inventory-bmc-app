@@ -16,31 +16,41 @@ import (
 )
 
 const (
-	chassisMask                              = "chassis-%s.service.*[?@._id == '%s'?].objects.root"
-	ledChassisMask                           = "led.chassis-%s.service.*[?@._id == '%s'?].objects.root"
-	statusChassisMask                        = "status.chassis-%s.service.*[?@._id == '%s'?].objects.root"
-	powerStateChassisMask                    = "power-state.chassis-%s.service.*[?@._id == '%s'?].objects.root"
-	physicalSecurityChassisMask              = "physical-security.chassis-%s.service.*[?@._id == '%s'?].objects.root"
-	locationChassisMask                      = "location.chassis-%s.service.*[?@._id == '%s'?].objects.root"
-	partLocationLocationChassisMask          = "part-location.location.chassis-%s.service.*[?@._id == '%s'?].objects.root"
-	placementLocationChassisMask             = "placement.location.chassis-%s.service.*[?@._id == '%s'?].objects.root"
-	postalAddressLocationChassisMask         = "postal-address.location.chassis-%s.service.*[?@._id == '%s'?].objects.root"
-	supportedResetTypesLocationChassisMask   = "supported-reset-types.location.chassis-%s.service.*[?@._id == '%s'?].objects.root"
-	thermalMask                              = "thermal.chassis-%s.service.*[?@._id == '%s'?].objects.root"
-	subThermalMask                           = "%s.thermal.chassis-%s.service.*[?@._id == '%s'?].objects.root"
-	statusSubThermalMask                     = "status.%s.thermal.chassis-%s.service.*[?@._id == '%s'?].objects.root"
+	// Chassis
+	chassisMask                      = "chassis-%s.service.*[?@._id == '%s'?].objects.root"
+	statusChassisMask                = "status.chassis-%s.service.*[?@._id == '%s'?].objects.root"
+	ledChassisMask                   = "led.chassis-%s.service.*[?@._id == '%s'?].objects.root"
+	locationChassisMask              = "location.chassis-%s.service.*[?@._id == '%s'?].objects.root"
+	partLocationLocationChassisMask  = "part-location.location.chassis-%s.service.*[?@._id == '%s'?].objects.root"
+	placementLocationChassisMask     = "placement.location.chassis-%s.service.*[?@._id == '%s'?].objects.root"
+	postalAddressLocationChassisMask = "postal-address.location.chassis-%s.service.*[?@._id == '%s'?].objects.root"
+	powerStateChassisMask            = "power-state.chassis-%s.service.*[?@._id == '%s'?].objects.root"
+	physicalSecurityChassisMask      = "physical-security.chassis-%s.service.*[?@._id == '%s'?].objects.root"
+	supportedResetTypesChassisMask   = "supported-reset-types.chassis-%s.service.*[?@._id == '%s'?].objects.root"
+
+	// Chassis -> Thermal Subsystem
+	thermalChassisMask                         = "thermal.chassis-%s.service.*[?@._id == '%s'?].objects.root"
+	subThermalChassisMask                      = "%s.thermal.chassis-%s.service.*[?@._id == '%s'?].objects.root"
+	statusSubThermalChassisMask                = "status.%s.thermal.chassis-%s.service.*[?@._id == '%s'?].objects.root"
+	ledSubThermalChassisMask                   = "led.%s.thermal.chassis-%s.service.*[?@._id == '%s'?].objects.root"
+	locationSubThermalChassisMask              = "location.%s.thermal.chassis-%s.service.*[?@._id == '%s'?].objects.root"
+	partLocationLocationSubThermalChassisMask  = "part-location.location.%s.thermal.chassis-%s.service.*[?@._id == '%s'?].objects.root"
+	placementLocationSubThermalChassisMask     = "placement.location.%s.thermal.chassis-%s.service.*[?@._id == '%s'?].objects.root"
+	postalAddressLocationSubThermalChassisMask = "postal-address.location.%s.thermal.chassis-%s.service.*[?@._id == '%s'?].objects.root"
+
+	// Chassis -> Power Subsystem
 	powerChassisMask                         = "power.chassis-%s.service.*[?@._id == '%s'?].objects.root"
+	ledPowerChassisMask                      = "led.power.chassis-%s.service.*[?@._id == '%s'?].objects.root"
 	subPowerChassisMask                      = "%s.power.chassis-%s.service.*[?@._id == '%s'?].objects.root"
+	statusSubPowerChassisMask                = "status.%s.power.chassis-%s.service.*[?@._id == '%s'?].objects.root"
 	ledSubPowerChassisMask                   = "led.%s.power.chassis-%s.service.*[?@._id == '%s'?].objects.root"
 	locationSubPowerChassisMask              = "location.%s.power.chassis-%s.service.*[?@._id == '%s'?].objects.root"
 	partLocationLocationSubPowerChassisMask  = "part-location.location.%s.power.chassis-%s.service.*[?@._id == '%s'?].objects.root"
-	placementLocationSubPowerChassisMask     = "placement.%s.power.chassis-%s.service.*[?@._id == '%s'?].objects.root"
-	postalAddressLocationSubPowerChassisMask = "postal-address.%s.power.chassis-%s.service.*[?@._id == '%s'?].objects.root"
-	statusSubPowerChassisMask                = "status.%s.power.chassis-%s.service.*[?@._id == '%s'?].objects.root"
+	placementLocationSubPowerChassisMask     = "placement.location.%s.power.chassis-%s.service.*[?@._id == '%s'?].objects.root"
+	postalAddressLocationSubPowerChassisMask = "postal-address.location.%s.power.chassis-%s.service.*[?@._id == '%s'?].objects.root"
 	physicalContextSubPowerChassisMask       = "physcial-context.%s.power.chassis-%s.service.*[?@._id == '%s'?].objects.root"
 	powerMetricSubPowerChassisMask           = "power-metric.%s.power.chassis-%s.service.*[?@._id == '%s'?].objects.root"
 	powerLimitSubPowerChassisMask            = "power-limit.%s.power.chassis-%s.service.*[?@._id == '%s'?].objects.root"
-	ledPowerChassisMask                      = "led.power.chassis-%s.service.*[?@._id == '%s'?].objects.root"
 )
 
 func (a *Agent) createOrUpdateChasseez(ctx module.Context, service *gofish.Service, parentNode *documents.Node) (err error) {
@@ -90,7 +100,7 @@ func (a *Agent) createOrUpdateThermal(ctx module.Context, parentNode *documents.
 		Description: redfishThermal.Description,
 	}
 
-	document, err := a.syncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishThermalID, types.RedfishThermalLink, thermal, thermalMask, chassis.UUID, ctx.Self().Id)
+	document, err := a.syncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishThermalID, types.RedfishThermalLink, thermal, thermalChassisMask, chassis.UUID, ctx.Self().Id)
 	if err != nil {
 		return
 	}
@@ -108,9 +118,10 @@ func (a *Agent) createOrUpdateThermal(ctx module.Context, parentNode *documents.
 }
 
 func (a *Agent) createOrUpdateThermalTemperature(ctx module.Context, parentNode *documents.Node, chassis *redfish.Chassis, temperature redfish.Temperature) (err error) {
-	temperatureLink := temperature.MemberID
+	// FIXME: added to avoid link name conflicts with fans
+	temperatureLink := fmt.Sprintf("temperature-%s", temperature.MemberID)
 
-	document, err := a.syncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishTemperatureID, temperatureLink, temperature, subThermalMask, temperatureLink, chassis.UUID, ctx.Self().Id)
+	document, err := a.syncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishTemperatureID, temperatureLink, temperature, subThermalChassisMask, temperatureLink, chassis.UUID, ctx.Self().Id)
 	if err != nil {
 		return
 	}
@@ -120,13 +131,71 @@ func (a *Agent) createOrUpdateThermalTemperature(ctx module.Context, parentNode 
 
 func (a *Agent) createOrUpdateThermalTemperatureStatus(ctx module.Context, parentNode *documents.Node, chassis *redfish.Chassis, temperatureLink string, temperature redfish.Temperature) (err error) {
 	status := &bootstrap.RedfishStatus{Status: temperature.Status}
-	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishStatusID, types.RedfishStatusLink, status, statusSubThermalMask, temperatureLink, chassis.UUID, ctx.Self().Id)
+	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishStatusID, types.RedfishStatusLink, status, statusSubThermalChassisMask, temperatureLink, chassis.UUID, ctx.Self().Id)
 }
 
-// TODO: update later, currently not available
 func (a *Agent) createOrUpdateThermalFan(ctx module.Context, parentNode *documents.Node, chassis *redfish.Chassis, fan redfish.Fan) (err error) {
-	fanLink := fan.MemberID
-	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishFanID, fanLink, fan, subThermalMask, fanLink, chassis.UUID, ctx.Self().Id)
+	fanLink := fmt.Sprintf("fan-%s", fan.MemberID)
+
+	document, err := a.syncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishFanID, fanLink, fan, subThermalChassisMask, fanLink, chassis.UUID, ctx.Self().Id)
+	if err != nil {
+		return
+	}
+
+	p := utils.NewParallel()
+	p.Exec(func() error {
+		return a.createOrUpdateFanStatus(ctx, chassis, document, fanLink, fan)
+	})
+	p.Exec(func() error {
+		return a.createOrUpdateFanIndicatorLED(ctx, chassis, document, fanLink, fan)
+	})
+	p.Exec(func() error {
+		return a.createOrUpdateFanLocation(ctx, chassis, document, fanLink, fan)
+	})
+	return p.Wait()
+}
+
+func (a *Agent) createOrUpdateFanStatus(ctx module.Context, chassis *redfish.Chassis, parentNode *documents.Node, fanLink string, fan redfish.Fan) (err error) {
+	status := &bootstrap.RedfishStatus{Status: fan.Status}
+	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishStatusID, types.RedfishStatusLink, status, statusSubThermalChassisMask, fanLink, chassis.UUID, ctx.Self().Id)
+}
+
+func (a *Agent) createOrUpdateFanIndicatorLED(ctx module.Context, chassis *redfish.Chassis, parentNode *documents.Node, fanLink string, fan redfish.Fan) (err error) {
+	led := &bootstrap.RedfishLed{Led: fan.IndicatorLED}
+	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishLedID, types.RedfishLedLink, led, ledSubThermalChassisMask, fanLink, chassis.UUID, ctx.Self().Id)
+}
+
+func (a *Agent) createOrUpdateFanLocation(ctx module.Context, chassis *redfish.Chassis, parentNode *documents.Node, fanLink string, fan redfish.Fan) (err error) {
+	location := fan.Location
+
+	document, err := a.syncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishLocationID, types.RedfishLocationLink, location, locationSubThermalChassisMask, fanLink, chassis.UUID, ctx.Self().Id)
+	if err != nil {
+		return
+	}
+
+	p := utils.NewParallel()
+	p.Exec(func() error {
+		return a.createOrUpdateFanPartLocation(ctx, chassis, document, fanLink, location.PartLocation)
+	})
+	p.Exec(func() error {
+		return a.createOrUpdateFanPlacement(ctx, chassis, document, fanLink, location.Placement)
+	})
+	p.Exec(func() error {
+		return a.createOrUpdateFanPostalAddress(ctx, chassis, document, fanLink, location.PostalAddress)
+	})
+	return p.Wait()
+}
+
+func (a *Agent) createOrUpdateFanPartLocation(ctx module.Context, chassis *redfish.Chassis, parentNode *documents.Node, fanLink string, partLocation common.PartLocation) (err error) {
+	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishPartLocationID, types.RedfishPartLocationLink, partLocation, partLocationLocationSubThermalChassisMask, fanLink, chassis.UUID, ctx.Self().Id)
+}
+
+func (a *Agent) createOrUpdateFanPlacement(ctx module.Context, chassis *redfish.Chassis, parentNode *documents.Node, fanLink string, placement common.Placement) (err error) {
+	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishPlacementID, types.RedfishPlacementLink, placement, placementLocationSubThermalChassisMask, fanLink, chassis.UUID, ctx.Self().Id)
+}
+
+func (a *Agent) createOrUpdateFanPostalAddress(ctx module.Context, chassis *redfish.Chassis, parentNode *documents.Node, fanLink string, postalAddress common.PostalAddress) (err error) {
+	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishPostalAddressID, types.RedfishPostalAddressLink, postalAddress, postalAddressLocationSubThermalChassisMask, fanLink, chassis.UUID, ctx.Self().Id)
 }
 
 func (a *Agent) createOrUpdatePower(ctx module.Context, parentNode *documents.Node, chassis *redfish.Chassis) (err error) {
@@ -350,5 +419,5 @@ func (a *Agent) createOrUpdatePostalAddress(ctx module.Context, chassis *redfish
 
 func (a *Agent) createOrUpdateChassisSupportedResetTypes(ctx module.Context, parentNode *documents.Node, chassis *redfish.Chassis) (err error) {
 	supportedResetTypes := &bootstrap.RedfishSupportedResetTypes{SupportedResetTypes: chassis.SupportedResetTypes}
-	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishSupportedResetTypesID, types.RedfishSupportedResetTypesLink, supportedResetTypes, supportedResetTypesLocationChassisMask, chassis.UUID, ctx.Self().Id)
+	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishSupportedResetTypesID, types.RedfishSupportedResetTypesLink, supportedResetTypes, supportedResetTypesChassisMask, chassis.UUID, ctx.Self().Id)
 }

@@ -133,5 +133,5 @@ func (a *Agent) createOrUpdateHostInterfaceStatus(ctx module.Context, parentNode
 
 func (a *Agent) createOrUpdateHostInterfaceType(ctx module.Context, parentNode *documents.Node, manager *redfish.Manager, hostInterfaceLink string, hostInterface *redfish.HostInterface) (err error) {
 	hostInterfaceType := &bootstrap.RedfishHostInterfaceType{HostInterfaceType: &hostInterface.HostInterfaceType}
-	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishHostInterfaceTypeID, types.RedfishTypeID, hostInterfaceType, typeSubManagerMask, hostInterfaceLink, manager.UUID, ctx.Self().Id)
+	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishHostInterfaceTypeID, types.RedfishTypeLink, hostInterfaceType, typeSubManagerMask, hostInterfaceLink, manager.UUID, ctx.Self().Id)
 }
