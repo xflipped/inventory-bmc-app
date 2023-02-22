@@ -22,8 +22,8 @@ const (
 	bootMask                   = "boot.system-%s.service.*[?@._id == '%s'?].objects.root"
 	bootOptionMask             = "%s.boot.system-%s.service.*[?@._id == '%s'?].objects.root"
 	secureBootMask             = "secure-boot.system-%s.service.*[?@._id == '%s'?].objects.root"
-	pcieMask                   = "%s.system-%s.service.*[?@._id == '%s'?].objects.root"
-	pcieStatusMask             = "status.%s.system-%s.service.*[?@._id == '%s'?].objects.root"
+	subSystemMask              = "%s.system-%s.service.*[?@._id == '%s'?].objects.root"
+	statusSubSystemMask        = "status.%s.system-%s.service.*[?@._id == '%s'?].objects.root"
 	pcieInterfaceMask          = "pcie-interface.%s.system-%s.service.*[?@._id == '%s'?].objects.root"
 	powerStateMask             = "power-state.system-%s.service.*[?@._id == '%s'?].objects.root"
 	powerRestoreStateMask      = "power-restore-policy.system-%s.service.*[?@._id == '%s'?].objects.root"
@@ -62,13 +62,15 @@ func (a *Agent) createOrUpdateSystem(ctx module.Context, parentNode *documents.N
 	p.Exec(func() error { return a.createOrUpdateSystemBoot(ctx, document, computerSystem) })
 	p.Exec(func() error { return a.createOrUpdateSystemSecureBoot(ctx, document, computerSystem) })
 	p.Exec(func() error { return a.createOrUpdatePCIeDevices(ctx, document, computerSystem) })
+	p.Exec(func() error { return a.createOrUpdatePCIeFunctions(ctx, document, computerSystem) })
 	p.Exec(func() error { return a.createOrUpdateSystemPowerState(ctx, document, computerSystem) })
 	p.Exec(func() error { return a.createOrUpdateSystemPowerRestorePolicy(ctx, document, computerSystem) })
 	p.Exec(func() error { return a.createOrUpdateProcessorSummary(ctx, document, computerSystem) })
+	// p.Exec(func() error { return a.createOrUpdateProcessors(ctx, document, computerSystem) })
 	p.Exec(func() error { return a.createOrUpdateMemorySummary(ctx, document, computerSystem) })
+	// p.Exec(func() error { return a.createOrUpdateMemories(ctx, document, computerSystem) })
 	p.Exec(func() error { return a.createOrUpdateHostWatchdogTimer(ctx, document, computerSystem) })
-	p.Exec(func() error { return a.createOrUpdateMemories(ctx, document, computerSystem) })
-	// TODO: return createMemories, createProcessors, etc.
+	// TODO: add new entities if available etc.
 	return p.Wait()
 }
 
@@ -137,13 +139,12 @@ func (a *Agent) createOrUpdatePCIeDevices(ctx module.Context, parentNode *docume
 	}
 
 	return p.Wait()
-
 }
 
 func (a *Agent) createOrUpdatePCIeDevice(ctx module.Context, parentNode *documents.Node, computerSystem *redfish.ComputerSystem, device *redfish.PCIeDevice) (err error) {
 	deviceLink := fmt.Sprintf("pcie-device-%s", device.ID)
 
-	document, err := a.syncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishPcieID, deviceLink, device, pcieMask, deviceLink, computerSystem.UUID, ctx.Self().Id)
+	document, err := a.syncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishPcieDeviceID, deviceLink, device, subSystemMask, deviceLink, computerSystem.UUID, ctx.Self().Id)
 	if err != nil {
 		return
 	}
@@ -160,12 +161,47 @@ func (a *Agent) createOrUpdatePCIeDevice(ctx module.Context, parentNode *documen
 
 func (a *Agent) createOrUpdatePCIeDeviceStatus(ctx module.Context, parentNode *documents.Node, computerSystem *redfish.ComputerSystem, deviceLink string, device *redfish.PCIeDevice) (err error) {
 	status := &bootstrap.RedfishStatus{Status: device.Status}
-	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishStatusID, types.RedfishStatusLink, status, pcieStatusMask, deviceLink, computerSystem.UUID, ctx.Self().Id)
+	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishStatusID, types.RedfishStatusLink, status, statusSubSystemMask, deviceLink, computerSystem.UUID, ctx.Self().Id)
 }
 
 func (a *Agent) createOrUpdatePCIeDeviceInterface(ctx module.Context, parentNode *documents.Node, computerSystem *redfish.ComputerSystem, deviceLink string, device *redfish.PCIeDevice) (err error) {
 	deviceInterface := &device.PCIeInterface
 	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishPcieInterfaceID, types.RedfishPcieInterfaceLink, deviceInterface, pcieInterfaceMask, deviceLink, computerSystem.UUID, ctx.Self().Id)
+}
+
+func (a *Agent) createOrUpdatePCIeFunctions(ctx module.Context, parentNode *documents.Node, computerSystem *redfish.ComputerSystem) (err error) {
+	functions, err := computerSystem.PCIeFunctions()
+	if err != nil {
+		return
+	}
+
+	p := utils.NewParallel()
+	for _, function := range functions {
+		function := function
+		p.Exec(func() error { return a.createOrUpdatePCIeFunction(ctx, parentNode, computerSystem, function) })
+	}
+
+	return p.Wait()
+}
+
+func (a *Agent) createOrUpdatePCIeFunction(ctx module.Context, parentNode *documents.Node, computerSystem *redfish.ComputerSystem, function *redfish.PCIeFunction) (err error) {
+	functionLink := fmt.Sprintf("pcie-function-%s", function.ID)
+
+	document, err := a.syncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishPcieFunctionID, functionLink, function, subSystemMask, functionLink, computerSystem.UUID, ctx.Self().Id)
+	if err != nil {
+		return
+	}
+
+	p := utils.NewParallel()
+	p.Exec(func() error {
+		return a.createOrUpdatePCIeFunctionStatus(ctx, document, computerSystem, functionLink, function)
+	})
+	return p.Wait()
+}
+
+func (a *Agent) createOrUpdatePCIeFunctionStatus(ctx module.Context, parentNode *documents.Node, computerSystem *redfish.ComputerSystem, functionLink string, function *redfish.PCIeFunction) (err error) {
+	status := &bootstrap.RedfishStatus{Status: function.Status}
+	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishStatusID, types.RedfishStatusLink, status, statusSubSystemMask, functionLink, computerSystem.UUID, ctx.Self().Id)
 }
 
 func (a *Agent) createOrUpdateSystemPowerState(ctx module.Context, parentNode *documents.Node, computerSystem *redfish.ComputerSystem) (err error) {
@@ -192,6 +228,41 @@ func (a *Agent) createOrUpdateProcessorSummaryStatus(ctx module.Context, parentN
 	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishStatusID, types.RedfishStatusLink, status, statusProcessorSummaryMask, computerSystem.UUID, ctx.Self().Id)
 }
 
+func (a *Agent) createOrUpdateProcessors(ctx module.Context, parentNode *documents.Node, computerSystem *redfish.ComputerSystem) (err error) {
+	processors, err := computerSystem.Processors()
+	if err != nil {
+		return
+	}
+
+	p := utils.NewParallel()
+	for _, processor := range processors {
+		processor := processor
+		p.Exec(func() error { return a.createOrUpdateProcessor(ctx, parentNode, computerSystem, processor) })
+	}
+
+	return p.Wait()
+}
+
+func (a *Agent) createOrUpdateProcessor(ctx module.Context, parentNode *documents.Node, computerSystem *redfish.ComputerSystem, processor *redfish.Processor) (err error) {
+	processorLink := processor.ID
+
+	document, err := a.syncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishProcessorID, processorLink, processor, subSystemMask, processorLink, computerSystem.UUID, ctx.Self().Id)
+	if err != nil {
+		return
+	}
+
+	p := utils.NewParallel()
+	p.Exec(func() error {
+		return a.createOrUpdateProcessorStatus(ctx, document, computerSystem, processorLink, processor)
+	})
+	return p.Wait()
+}
+
+func (a *Agent) createOrUpdateProcessorStatus(ctx module.Context, parentNode *documents.Node, computerSystem *redfish.ComputerSystem, processorLink string, processor *redfish.Processor) (err error) {
+	status := &bootstrap.RedfishStatus{Status: processor.Status}
+	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishStatusID, types.RedfishStatusLink, status, statusSubSystemMask, processorLink, computerSystem.UUID, ctx.Self().Id)
+}
+
 func (a *Agent) createOrUpdateMemorySummary(ctx module.Context, parentNode *documents.Node, computerSystem *redfish.ComputerSystem) (err error) {
 	memorySummary := computerSystem.MemorySummary
 
@@ -208,12 +279,6 @@ func (a *Agent) createOrUpdateMemorySummaryStatus(ctx module.Context, parentNode
 	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishStatusID, types.RedfishStatusLink, status, statusMemorySummaryMask, computerSystem.UUID, ctx.Self().Id)
 }
 
-func (a *Agent) createOrUpdateHostWatchdogTimer(ctx module.Context, parentNode *documents.Node, computerSystem *redfish.ComputerSystem) (err error) {
-	hostWatchdogTimer := computerSystem.HostWatchdogTimer
-	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishHostWatchdogTimerID, types.RedfishHostWatchdogTimerLink, hostWatchdogTimer, hostWatchdogTimerMask, computerSystem.UUID, ctx.Self().Id)
-}
-
-// TODO: currently unavailable structures, pending to implement
 func (a *Agent) createOrUpdateMemories(ctx module.Context, parentNode *documents.Node, computerSystem *redfish.ComputerSystem) (err error) {
 	memories, err := computerSystem.Memory()
 	if err != nil {
@@ -230,6 +295,26 @@ func (a *Agent) createOrUpdateMemories(ctx module.Context, parentNode *documents
 }
 
 func (a *Agent) createOrUpdateMemory(ctx module.Context, parentNode *documents.Node, computerSystem *redfish.ComputerSystem, memory *redfish.Memory) (err error) {
-	fmt.Println(memory.DeviceLocator, memory.MemoryLocation)
-	return
+	memoryLink := memory.ID
+
+	document, err := a.syncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishMemoryID, memoryLink, memory, subSystemMask, memoryLink, computerSystem.UUID, ctx.Self().Id)
+	if err != nil {
+		return
+	}
+
+	p := utils.NewParallel()
+	p.Exec(func() error {
+		return a.createOrUpdateMemoryStatus(ctx, document, computerSystem, memoryLink, memory)
+	})
+	return p.Wait()
+}
+
+func (a *Agent) createOrUpdateMemoryStatus(ctx module.Context, parentNode *documents.Node, computerSystem *redfish.ComputerSystem, memoryLink string, memory *redfish.Memory) (err error) {
+	status := &bootstrap.RedfishStatus{Status: memory.Status}
+	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishStatusID, types.RedfishStatusLink, status, statusSubSystemMask, memoryLink, computerSystem.UUID, ctx.Self().Id)
+}
+
+func (a *Agent) createOrUpdateHostWatchdogTimer(ctx module.Context, parentNode *documents.Node, computerSystem *redfish.ComputerSystem) (err error) {
+	hostWatchdogTimer := computerSystem.HostWatchdogTimer
+	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishHostWatchdogTimerID, types.RedfishHostWatchdogTimerLink, hostWatchdogTimer, hostWatchdogTimerMask, computerSystem.UUID, ctx.Self().Id)
 }
