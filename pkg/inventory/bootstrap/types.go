@@ -103,6 +103,10 @@ type RedfishMemory struct {
 	*redfish.Memory
 }
 
+type RedfishMemoryDomain struct {
+	*redfish.MemoryDomain
+}
+
 type RedfishHostWatchdogTimer struct {
 	*redfish.WatchdogTimer
 }
@@ -312,6 +316,11 @@ func createRedfishMemory(ctx context.Context) (err error) {
 	return createType(ctx, pt)
 }
 
+func createRedfishMemoryDomain(ctx context.Context) (err error) {
+	pt := types.ReflectType(&RedfishMemoryDomain{})
+	return createType(ctx, pt)
+}
+
 func createRedfishHostWatchdogTimer(ctx context.Context) (err error) {
 	pt := types.ReflectType(&RedfishHostWatchdogTimer{})
 	return createType(ctx, pt)
@@ -476,6 +485,9 @@ func createTypes(ctx context.Context) (err error) {
 		return
 	}
 	if err = createRedfishMemory(ctx); err != nil {
+		return
+	}
+	if err = createRedfishMemoryDomain(ctx); err != nil {
 		return
 	}
 	if err = createRedfishHostWatchdogTimer(ctx); err != nil {

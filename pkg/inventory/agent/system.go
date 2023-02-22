@@ -69,6 +69,7 @@ func (a *Agent) createOrUpdateSystem(ctx module.Context, parentNode *documents.N
 	// p.Exec(func() error { return a.createOrUpdateProcessors(ctx, document, computerSystem) })
 	p.Exec(func() error { return a.createOrUpdateMemorySummary(ctx, document, computerSystem) })
 	// p.Exec(func() error { return a.createOrUpdateMemories(ctx, document, computerSystem) })
+	p.Exec(func() error { return a.createOrUpdateMemoryDomains(ctx, document, computerSystem) })
 	p.Exec(func() error { return a.createOrUpdateHostWatchdogTimer(ctx, document, computerSystem) })
 	// TODO: add new entities if available etc.
 	return p.Wait()
@@ -312,6 +313,26 @@ func (a *Agent) createOrUpdateMemory(ctx module.Context, parentNode *documents.N
 func (a *Agent) createOrUpdateMemoryStatus(ctx module.Context, parentNode *documents.Node, computerSystem *redfish.ComputerSystem, memoryLink string, memory *redfish.Memory) (err error) {
 	status := &bootstrap.RedfishStatus{Status: memory.Status}
 	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishStatusID, types.RedfishStatusLink, status, statusSubSystemMask, memoryLink, computerSystem.UUID, ctx.Self().Id)
+}
+
+func (a *Agent) createOrUpdateMemoryDomains(ctx module.Context, parentNode *documents.Node, computerSystem *redfish.ComputerSystem) (err error) {
+	memoryDomains, err := computerSystem.MemoryDomains()
+	if err != nil {
+		return
+	}
+
+	p := utils.NewParallel()
+	for _, memoryDomain := range memoryDomains {
+		memoryDomain := memoryDomain
+		p.Exec(func() error { return a.createOrUpdateMemoryDomain(ctx, parentNode, computerSystem, memoryDomain) })
+	}
+
+	return p.Wait()
+}
+
+func (a *Agent) createOrUpdateMemoryDomain(ctx module.Context, parentNode *documents.Node, computerSystem *redfish.ComputerSystem, memoryDomain *redfish.MemoryDomain) (err error) {
+	memoryDomainLink := memoryDomain.ID
+	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishMemoryDomainID, memoryDomainLink, memoryDomain, subSystemMask, memoryDomainLink, computerSystem.UUID, ctx.Self().Id)
 }
 
 func (a *Agent) createOrUpdateHostWatchdogTimer(ctx module.Context, parentNode *documents.Node, computerSystem *redfish.ComputerSystem) (err error) {

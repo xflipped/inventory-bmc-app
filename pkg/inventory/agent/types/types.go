@@ -46,6 +46,7 @@ const (
 	RedfishProcessorID           = "types/redfish-processor"
 	RedfishMemorySummaryID       = "types/redfish-memory-summary"
 	RedfishMemoryID              = "types/redfish-memory"
+	RedfishMemoryDomainID        = "types/redfish-memory-domain"
 	RedfishHostWatchdogTimerID   = "types/redfish-host-watchdog-timer"
 	RedfishPhysicalSecurityID    = "types/redfish-physical-security"
 	RedfishPlacementID           = "types/redfish-placement"
