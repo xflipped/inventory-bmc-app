@@ -16,30 +16,30 @@ import (
 )
 
 const (
-	systemMask                          = "system-%s.service.*[?@._id == '%s'?].objects.root"
-	biosMask                            = "bios.system-%s.service.*[?@._id == '%s'?].objects.root"
-	ledMask                             = "led.system-%s.service.*[?@._id == '%s'?].objects.root"
-	statusMask                          = "status.system-%s.service.*[?@._id == '%s'?].objects.root"
-	bootMask                            = "boot.system-%s.service.*[?@._id == '%s'?].objects.root"
-	bootOptionMask                      = "%s.boot.system-%s.service.*[?@._id == '%s'?].objects.root"
-	secureBootMask                      = "secure-boot.system-%s.service.*[?@._id == '%s'?].objects.root"
-	subSystemMask                       = "%s.system-%s.service.*[?@._id == '%s'?].objects.root"
-	statusSubSystemMask                 = "status.%s.system-%s.service.*[?@._id == '%s'?].objects.root"
-	pcieInterfaceMask                   = "pcie-interface.%s.system-%s.service.*[?@._id == '%s'?].objects.root"
-	powerStateMask                      = "power-state.system-%s.service.*[?@._id == '%s'?].objects.root"
-	powerRestoreStateMask               = "power-restore-policy.system-%s.service.*[?@._id == '%s'?].objects.root"
-	processorSummaryMask                = "processor-summary.system-%s.service.*[?@._id == '%s'?].objects.root"
-	statusProcessorSummaryMask          = "status.processor-summary.system-%s.service.*[?@._id == '%s'?].objects.root"
-	memorySummaryMask                   = "memory-summary.system-%s.service.*[?@._id == '%s'?].objects.root"
-	statusMemorySummaryMask             = "status.memory-summary.system-%s.service.*[?@._id == '%s'?].objects.root"
-	hostWatchdogTimerMask               = "host-watchdog-timer.system-%s.service.*[?@._id == '%s'?].objects.root"
-	subStorageMask                      = "%s.%s.system-%s.service.*[?@._id == '%s'?].objects.root"
-	statusSubStorageMask                = "status.%s.%s.system-%s.service.*[?@._id == '%s'?].objects.root"
-	ledSubStorageMask                   = "led.%s.%s.system-%s.service.*[?@._id == '%s'?].objects.root"
-	locationSubStorageMask              = "location.%s.%s.system-%s.service.*[?@._id == '%s'?].objects.root"
-	partLocationLocationSubStorageMask  = "part-location.location.%s.%s.system-%s.service.*[?@._id == '%s'?].objects.root"
-	placementLocationSubStorageMask     = "placement.location.%s.%s.system-%s.service.*[?@._id == '%s'?].objects.root"
-	postalAddressLocationSubStorageMask = "postal-address.location.%s.%s.system-%s.service.*[?@._id == '%s'?].objects.root"
+	systemMask                            = "system-%s.service.*[?@._id == '%s'?].objects.root"
+	biosMask                              = "bios.system-%s.service.*[?@._id == '%s'?].objects.root"
+	ledMask                               = "led.system-%s.service.*[?@._id == '%s'?].objects.root"
+	statusMask                            = "status.system-%s.service.*[?@._id == '%s'?].objects.root"
+	bootMask                              = "boot.system-%s.service.*[?@._id == '%s'?].objects.root"
+	bootOptionMask                        = "%s.boot.system-%s.service.*[?@._id == '%s'?].objects.root"
+	secureBootMask                        = "secure-boot.system-%s.service.*[?@._id == '%s'?].objects.root"
+	subSystemMask                         = "%s.system-%s.service.*[?@._id == '%s'?].objects.root"
+	statusSubSystemMask                   = "status.%s.system-%s.service.*[?@._id == '%s'?].objects.root"
+	pcieInterfaceMask                     = "pcie-interface.%s.system-%s.service.*[?@._id == '%s'?].objects.root"
+	powerStateMask                        = "power-state.system-%s.service.*[?@._id == '%s'?].objects.root"
+	powerRestoreStateMask                 = "power-restore-policy.system-%s.service.*[?@._id == '%s'?].objects.root"
+	processorSummaryMask                  = "processor-summary.system-%s.service.*[?@._id == '%s'?].objects.root"
+	statusProcessorSummaryMask            = "status.processor-summary.system-%s.service.*[?@._id == '%s'?].objects.root"
+	memorySummaryMask                     = "memory-summary.system-%s.service.*[?@._id == '%s'?].objects.root"
+	statusMemorySummaryMask               = "status.memory-summary.system-%s.service.*[?@._id == '%s'?].objects.root"
+	hostWatchdogTimerMask                 = "host-watchdog-timer.system-%s.service.*[?@._id == '%s'?].objects.root"
+	subSubSystemMask                      = "%s.%s.system-%s.service.*[?@._id == '%s'?].objects.root"
+	statusSubSubSystemMask                = "status.%s.%s.system-%s.service.*[?@._id == '%s'?].objects.root"
+	ledSubSubSystemMask                   = "led.%s.%s.system-%s.service.*[?@._id == '%s'?].objects.root"
+	locationSubSubSystemMask              = "location.%s.%s.system-%s.service.*[?@._id == '%s'?].objects.root"
+	partLocationLocationSubSubSystemMask  = "part-location.location.%s.%s.system-%s.service.*[?@._id == '%s'?].objects.root"
+	placementLocationSubSubSystemMask     = "placement.location.%s.%s.system-%s.service.*[?@._id == '%s'?].objects.root"
+	postalAddressLocationSubSubSystemMask = "postal-address.location.%s.%s.system-%s.service.*[?@._id == '%s'?].objects.root"
 )
 
 func (a *Agent) createOrUpdateSystems(ctx module.Context, service *gofish.Service, parentNode *documents.Node) (err error) {
@@ -81,6 +81,8 @@ func (a *Agent) createOrUpdateSystem(ctx module.Context, parentNode *documents.N
 	p.Exec(func() error { return a.createOrUpdateHostWatchdogTimer(ctx, document, computerSystem) })
 	p.Exec(func() error { return a.createOrUpdateSimpleStorages(ctx, document, computerSystem) })
 	p.Exec(func() error { return a.createOrUpdateStorages(ctx, document, computerSystem) })
+	p.Exec(func() error { return a.createOrUpdateSystemNetworkInterfaces(ctx, document, computerSystem) })
+	p.Exec(func() error { return a.createOrUpdateSystemEthernetInterfaces(ctx, document, computerSystem) })
 	// TODO: add new entities if available etc.
 	return p.Wait()
 }
@@ -203,11 +205,7 @@ func (a *Agent) createOrUpdatePCIeFunction(ctx module.Context, parentNode *docum
 		return
 	}
 
-	p := utils.NewParallel()
-	p.Exec(func() error {
-		return a.createOrUpdatePCIeFunctionStatus(ctx, document, computerSystem, functionLink, function)
-	})
-	return p.Wait()
+	return a.createOrUpdatePCIeFunctionStatus(ctx, document, computerSystem, functionLink, function)
 }
 
 func (a *Agent) createOrUpdatePCIeFunctionStatus(ctx module.Context, parentNode *documents.Node, computerSystem *redfish.ComputerSystem, functionLink string, function *redfish.PCIeFunction) (err error) {
@@ -262,11 +260,7 @@ func (a *Agent) createOrUpdateProcessor(ctx module.Context, parentNode *document
 		return
 	}
 
-	p := utils.NewParallel()
-	p.Exec(func() error {
-		return a.createOrUpdateProcessorStatus(ctx, document, computerSystem, processorLink, processor)
-	})
-	return p.Wait()
+	return a.createOrUpdateProcessorStatus(ctx, document, computerSystem, processorLink, processor)
 }
 
 func (a *Agent) createOrUpdateProcessorStatus(ctx module.Context, parentNode *documents.Node, computerSystem *redfish.ComputerSystem, processorLink string, processor *redfish.Processor) (err error) {
@@ -313,11 +307,7 @@ func (a *Agent) createOrUpdateMemory(ctx module.Context, parentNode *documents.N
 		return
 	}
 
-	p := utils.NewParallel()
-	p.Exec(func() error {
-		return a.createOrUpdateMemoryStatus(ctx, document, computerSystem, memoryLink, memory)
-	})
-	return p.Wait()
+	return a.createOrUpdateMemoryStatus(ctx, document, computerSystem, memoryLink, memory)
 }
 
 func (a *Agent) createOrUpdateMemoryStatus(ctx module.Context, parentNode *documents.Node, computerSystem *redfish.ComputerSystem, memoryLink string, memory *redfish.Memory) (err error) {
@@ -394,7 +384,7 @@ func (a *Agent) createOrUpdateSimpleStorageStatus(ctx module.Context, parentNode
 func (a *Agent) createOrUpdateSimpleStorageDevice(ctx module.Context, parentNode *documents.Node, computerSystem *redfish.ComputerSystem, simpleStorageLink string, device redfish.Device) (err error) {
 	deviceLink := device.Name
 
-	document, err := a.syncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishStorageDeviceID, deviceLink, device, subStorageMask, deviceLink, simpleStorageLink, computerSystem.UUID, ctx.Self().Id)
+	document, err := a.syncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishStorageDeviceID, deviceLink, device, subSubSystemMask, deviceLink, simpleStorageLink, computerSystem.UUID, ctx.Self().Id)
 	if err != nil {
 		return
 	}
@@ -404,7 +394,7 @@ func (a *Agent) createOrUpdateSimpleStorageDevice(ctx module.Context, parentNode
 
 func (a *Agent) createOrUpdateSimpleStorageDeviceStatus(ctx module.Context, parentNode *documents.Node, computerSystem *redfish.ComputerSystem, simpleStorageLink, deviceLink string, device redfish.Device) (err error) {
 	status := &bootstrap.RedfishStatus{Status: device.Status}
-	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishStatusID, types.RedfishStatusLink, status, statusSubStorageMask, deviceLink, simpleStorageLink, computerSystem.UUID, ctx.Self().Id)
+	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishStatusID, types.RedfishStatusLink, status, statusSubSubSystemMask, deviceLink, simpleStorageLink, computerSystem.UUID, ctx.Self().Id)
 }
 
 func (a *Agent) createOrUpdateStorages(ctx module.Context, parentNode *documents.Node, computerSystem *redfish.ComputerSystem) (err error) {
@@ -467,7 +457,7 @@ func (a *Agent) createOrUpdateDrives(ctx module.Context, parentNode *documents.N
 func (a *Agent) createOrUpdateDrive(ctx module.Context, parentNode *documents.Node, computerSystem *redfish.ComputerSystem, storageLink string, drive *redfish.Drive) (err error) {
 	driveLink := drive.ID
 
-	document, err := a.syncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishDriveID, driveLink, drive, subStorageMask, driveLink, storageLink, computerSystem.UUID, ctx.Self().Id)
+	document, err := a.syncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishDriveID, driveLink, drive, subSubSystemMask, driveLink, storageLink, computerSystem.UUID, ctx.Self().Id)
 	if err != nil {
 		return
 	}
@@ -487,18 +477,18 @@ func (a *Agent) createOrUpdateDrive(ctx module.Context, parentNode *documents.No
 
 func (a *Agent) createOrUpdateDriveStatus(ctx module.Context, parentNode *documents.Node, computerSystem *redfish.ComputerSystem, storageLink, driveLink string, drive *redfish.Drive) (err error) {
 	status := &bootstrap.RedfishStatus{Status: drive.Status}
-	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishStatusID, types.RedfishStatusLink, status, statusSubStorageMask, driveLink, storageLink, computerSystem.UUID, ctx.Self().Id)
+	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishStatusID, types.RedfishStatusLink, status, statusSubSubSystemMask, driveLink, storageLink, computerSystem.UUID, ctx.Self().Id)
 }
 
 func (a *Agent) createOrUpdateDriveIndicatorLED(ctx module.Context, parentNode *documents.Node, computerSystem *redfish.ComputerSystem, storageLink, driveLink string, drive *redfish.Drive) (err error) {
 	led := &bootstrap.RedfishLed{Led: drive.IndicatorLED}
-	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishLedID, types.RedfishLedLink, led, ledSubStorageMask, driveLink, storageLink, computerSystem.UUID, ctx.Self().Id)
+	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishLedID, types.RedfishLedLink, led, ledSubSubSystemMask, driveLink, storageLink, computerSystem.UUID, ctx.Self().Id)
 }
 
 func (a *Agent) createOrUpdateDriveLocation(ctx module.Context, parentNode *documents.Node, computerSystem *redfish.ComputerSystem, storageLink, driveLink string, drive *redfish.Drive) (err error) {
 	location := drive.PhysicalLocation
 
-	document, err := a.syncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishLocationID, types.RedfishLocationLink, location, locationSubStorageMask, driveLink, storageLink, computerSystem.UUID, ctx.Self().Id)
+	document, err := a.syncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishLocationID, types.RedfishLocationLink, location, locationSubSubSystemMask, driveLink, storageLink, computerSystem.UUID, ctx.Self().Id)
 	if err != nil {
 		return
 	}
@@ -517,15 +507,15 @@ func (a *Agent) createOrUpdateDriveLocation(ctx module.Context, parentNode *docu
 }
 
 func (a *Agent) createOrUpdateDrivePartLocation(ctx module.Context, parentNode *documents.Node, computerSystem *redfish.ComputerSystem, storageLink, driveLink string, partLocation common.PartLocation) (err error) {
-	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishPartLocationID, types.RedfishPartLocationLink, partLocation, partLocationLocationSubStorageMask, driveLink, storageLink, computerSystem.UUID, ctx.Self().Id)
+	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishPartLocationID, types.RedfishPartLocationLink, partLocation, partLocationLocationSubSubSystemMask, driveLink, storageLink, computerSystem.UUID, ctx.Self().Id)
 }
 
 func (a *Agent) createOrUpdateDrivePlacement(ctx module.Context, parentNode *documents.Node, computerSystem *redfish.ComputerSystem, storageLink, driveLink string, placement common.Placement) (err error) {
-	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishPlacementID, types.RedfishPlacementLink, placement, placementLocationSubStorageMask, driveLink, storageLink, computerSystem.UUID, ctx.Self().Id)
+	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishPlacementID, types.RedfishPlacementLink, placement, placementLocationSubSubSystemMask, driveLink, storageLink, computerSystem.UUID, ctx.Self().Id)
 }
 
 func (a *Agent) createOrUpdateDrivePostalAddress(ctx module.Context, parentNode *documents.Node, computerSystem *redfish.ComputerSystem, storageLink, driveLink string, postalAddress common.PostalAddress) (err error) {
-	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishPostalAddressID, types.RedfishPostalAddressLink, postalAddress, postalAddressLocationSubStorageMask, driveLink, storageLink, computerSystem.UUID, ctx.Self().Id)
+	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishPostalAddressID, types.RedfishPostalAddressLink, postalAddress, postalAddressLocationSubSubSystemMask, driveLink, storageLink, computerSystem.UUID, ctx.Self().Id)
 }
 
 func (a *Agent) createOrUpdateVolumes(ctx module.Context, parentNode *documents.Node, computerSystem *redfish.ComputerSystem, storageLink string, storage *redfish.Storage) (err error) {
@@ -546,19 +536,79 @@ func (a *Agent) createOrUpdateVolumes(ctx module.Context, parentNode *documents.
 func (a *Agent) createOrUpdateVolume(ctx module.Context, parentNode *documents.Node, computerSystem *redfish.ComputerSystem, storageLink string, volume *redfish.Volume) (err error) {
 	volumeLink := volume.ID
 
-	document, err := a.syncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishVolumeID, volumeLink, volume, subStorageMask, volumeLink, storageLink, computerSystem.UUID, ctx.Self().Id)
+	document, err := a.syncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishVolumeID, volumeLink, volume, subSubSystemMask, volumeLink, storageLink, computerSystem.UUID, ctx.Self().Id)
+	if err != nil {
+		return
+	}
+
+	return a.createOrUpdateVolumeStatus(ctx, document, computerSystem, storageLink, volumeLink, volume)
+}
+
+func (a *Agent) createOrUpdateVolumeStatus(ctx module.Context, parentNode *documents.Node, computerSystem *redfish.ComputerSystem, storageLink, volumeLink string, volume *redfish.Volume) (err error) {
+	status := &bootstrap.RedfishStatus{Status: volume.Status}
+	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishStatusID, types.RedfishStatusLink, status, statusSubSubSystemMask, volumeLink, storageLink, computerSystem.UUID, ctx.Self().Id)
+}
+
+func (a *Agent) createOrUpdateSystemNetworkInterfaces(ctx module.Context, parentNode *documents.Node, computerSystem *redfish.ComputerSystem) (err error) {
+	networkInterfaces, err := computerSystem.NetworkInterfaces()
 	if err != nil {
 		return
 	}
 
 	p := utils.NewParallel()
-	p.Exec(func() error {
-		return a.createOrUpdateVolumeStatus(ctx, document, computerSystem, storageLink, volumeLink, volume)
-	})
+	for _, networkInterface := range networkInterfaces {
+		networkInterface := networkInterface
+		p.Exec(func() error {
+			return a.createOrUpdateSystemNetworkInterface(ctx, parentNode, computerSystem, networkInterface)
+		})
+	}
 	return p.Wait()
 }
 
-func (a *Agent) createOrUpdateVolumeStatus(ctx module.Context, parentNode *documents.Node, computerSystem *redfish.ComputerSystem, storageLink, volumeLink string, volume *redfish.Volume) (err error) {
-	status := &bootstrap.RedfishStatus{Status: volume.Status}
-	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishStatusID, types.RedfishStatusLink, status, statusSubStorageMask, volumeLink, storageLink, computerSystem.UUID, ctx.Self().Id)
+func (a *Agent) createOrUpdateSystemNetworkInterface(ctx module.Context, parentNode *documents.Node, computerSystem *redfish.ComputerSystem, networkInterface *redfish.NetworkInterface) (err error) {
+	networkInterfaceLink := networkInterface.ID
+
+	document, err := a.syncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishNetworkInterfaceID, networkInterfaceLink, networkInterface, subSystemMask, networkInterfaceLink, computerSystem.UUID, ctx.Self().Id)
+	if err != nil {
+		return
+	}
+
+	return a.createOrUpdateSystemNetworkInterfaceStatus(ctx, document, computerSystem, networkInterfaceLink, networkInterface)
+}
+
+func (a *Agent) createOrUpdateSystemNetworkInterfaceStatus(ctx module.Context, parentNode *documents.Node, computerSystem *redfish.ComputerSystem, networkInterfaceLink string, networkInterface *redfish.NetworkInterface) (err error) {
+	status := &bootstrap.RedfishStatus{Status: networkInterface.Status}
+	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishStatusID, types.RedfishStatusLink, status, statusSubSystemMask, networkInterfaceLink, computerSystem.UUID, ctx.Self().Id)
+}
+
+func (a *Agent) createOrUpdateSystemEthernetInterfaces(ctx module.Context, parentNode *documents.Node, computerSystem *redfish.ComputerSystem) (err error) {
+	ethernetInterfaces, err := computerSystem.EthernetInterfaces()
+	if err != nil {
+		return
+	}
+
+	p := utils.NewParallel()
+	for _, ethernetInterface := range ethernetInterfaces {
+		ethernetInterface := ethernetInterface
+		p.Exec(func() error {
+			return a.createOrUpdateSystemEthernetInterface(ctx, parentNode, computerSystem, ethernetInterface)
+		})
+	}
+	return p.Wait()
+}
+
+func (a *Agent) createOrUpdateSystemEthernetInterface(ctx module.Context, parentNode *documents.Node, computerSystem *redfish.ComputerSystem, ethernetInterface *redfish.EthernetInterface) (err error) {
+	ethernetInterfaceLink := ethernetInterface.ID
+
+	document, err := a.syncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishEthernetInterfaceID, ethernetInterfaceLink, ethernetInterface, subSystemMask, ethernetInterfaceLink, computerSystem.UUID, ctx.Self().Id)
+	if err != nil {
+		return
+	}
+
+	return a.createOrUpdateSystemEthernetInterfaceStatus(ctx, document, computerSystem, ethernetInterfaceLink, ethernetInterface)
+}
+
+func (a *Agent) createOrUpdateSystemEthernetInterfaceStatus(ctx module.Context, parentNode *documents.Node, computerSystem *redfish.ComputerSystem, ethernetInterfaceLink string, ethernetInterface *redfish.EthernetInterface) (err error) {
+	status := &bootstrap.RedfishStatus{Status: ethernetInterface.Status}
+	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishStatusID, types.RedfishStatusLink, status, statusSubSystemMask, ethernetInterfaceLink, computerSystem.UUID, ctx.Self().Id)
 }

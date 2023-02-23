@@ -29,6 +29,7 @@ const (
 	RedfishManagerID             = "types/redfish-manager"
 	RedfishPowerID               = "types/redfish-power"
 	RedfishCommandShellID        = "types/redfish-command-shell"
+	RedfishNetworkInterfaceID    = "types/redfish-network-interface"
 	RedfishEthernetInterfaceID   = "types/redfish-ethernet-interface"
 	RedfishHostInterfaceID       = "types/redfish-host-interface"
 	RedfishHostInterfaceTypeID   = "types/redfish-host-interface-type"

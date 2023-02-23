@@ -203,6 +203,10 @@ type RedfishCommandShell struct {
 	*redfish.CommandShell
 }
 
+type RedfishNetworkInterface struct {
+	*redfish.NetworkInterface
+}
+
 type RedfishEthernetInterface struct {
 	*redfish.EthernetInterface
 }
@@ -456,6 +460,11 @@ func createRedfishCommandShell(ctx context.Context) (err error) {
 	return createType(ctx, pt)
 }
 
+func createRedfishNetworkInterface(ctx context.Context) (err error) {
+	pt := types.ReflectType(&RedfishNetworkInterface{})
+	return createType(ctx, pt)
+}
+
 func createRedfishEthernetInterface(ctx context.Context) (err error) {
 	pt := types.ReflectType(&RedfishEthernetInterface{})
 	return createType(ctx, pt)
@@ -602,6 +611,9 @@ func createTypes(ctx context.Context) (err error) {
 		return
 	}
 	if err = createRedfishCommandShell(ctx); err != nil {
+		return
+	}
+	if err = createRedfishNetworkInterface(ctx); err != nil {
 		return
 	}
 	if err = createRedfishEthernetInterface(ctx); err != nil {

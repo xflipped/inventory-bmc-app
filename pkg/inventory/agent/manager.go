@@ -86,7 +86,17 @@ func (a *Agent) createOrUpdateEthernetInterfaces(ctx module.Context, parentNode 
 
 func (a *Agent) createOrUpdateEthernetInterface(ctx module.Context, parentNode *documents.Node, manager *redfish.Manager, ethernetInterface *redfish.EthernetInterface) (err error) {
 	ethernetInterfaceLink := ethernetInterface.ID
-	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishEthernetInterfaceID, ethernetInterfaceLink, ethernetInterface, subManagerMask, ethernetInterfaceLink, manager.UUID, ctx.Self().Id)
+	document, err := a.syncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishEthernetInterfaceID, ethernetInterfaceLink, ethernetInterface, subManagerMask, ethernetInterfaceLink, manager.UUID, ctx.Self().Id)
+	if err != nil {
+		return
+	}
+
+	return a.createOrUpdateEthernetInterfaceStatus(ctx, document, manager, ethernetInterfaceLink, ethernetInterface)
+}
+
+func (a *Agent) createOrUpdateEthernetInterfaceStatus(ctx module.Context, parentNode *documents.Node, manager *redfish.Manager, ethernetInterfaceLink string, ethernetInterface *redfish.EthernetInterface) (err error) {
+	status := &bootstrap.RedfishStatus{Status: ethernetInterface.Status}
+	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishStatusID, types.RedfishStatusLink, status, statusSubManagerMask, ethernetInterfaceLink, manager.UUID, ctx.Self().Id)
 }
 
 func (a *Agent) createOrUpdateHostInterfaces(ctx module.Context, parentNode *documents.Node, manager *redfish.Manager) (err error) {
