@@ -111,6 +111,26 @@ type RedfishHostWatchdogTimer struct {
 	*redfish.WatchdogTimer
 }
 
+type RedfishSimpleStorage struct {
+	*redfish.SimpleStorage
+}
+
+type RedfishStorage struct {
+	*redfish.Storage
+}
+
+type RedfishStorageDevice struct {
+	*redfish.Device
+}
+
+type RedfishDrive struct {
+	*redfish.Drive
+}
+
+type RedfishVolume struct {
+	*redfish.Volume
+}
+
 type RedfishThermal struct {
 	ID          string `json:"Id,omitempty"`
 	Name        string `json:"Name,omitempty"`
@@ -326,6 +346,31 @@ func createRedfishHostWatchdogTimer(ctx context.Context) (err error) {
 	return createType(ctx, pt)
 }
 
+func createRedfishSimpleStorage(ctx context.Context) (err error) {
+	pt := types.ReflectType(&RedfishSimpleStorage{})
+	return createType(ctx, pt)
+}
+
+func createRedfishStorage(ctx context.Context) (err error) {
+	pt := types.ReflectType(&RedfishStorage{})
+	return createType(ctx, pt)
+}
+
+func createRedfishStorageDevice(ctx context.Context) (err error) {
+	pt := types.ReflectType(&RedfishStorageDevice{})
+	return createType(ctx, pt)
+}
+
+func createRedfishDrive(ctx context.Context) (err error) {
+	pt := types.ReflectType(&RedfishDrive{})
+	return createType(ctx, pt)
+}
+
+func createRedfishVolume(ctx context.Context) (err error) {
+	pt := types.ReflectType(&RedfishVolume{})
+	return createType(ctx, pt)
+}
+
 func createRedfishThermal(ctx context.Context) (err error) {
 	pt := types.ReflectType(&RedfishThermal{})
 	return createType(ctx, pt)
@@ -491,6 +536,21 @@ func createTypes(ctx context.Context) (err error) {
 		return
 	}
 	if err = createRedfishHostWatchdogTimer(ctx); err != nil {
+		return
+	}
+	if err = createRedfishSimpleStorage(ctx); err != nil {
+		return
+	}
+	if err = createRedfishStorage(ctx); err != nil {
+		return
+	}
+	if err = createRedfishStorageDevice(ctx); err != nil {
+		return
+	}
+	if err = createRedfishDrive(ctx); err != nil {
+		return
+	}
+	if err = createRedfishVolume(ctx); err != nil {
 		return
 	}
 	if err = createRedfishThermal(ctx); err != nil {
