@@ -219,6 +219,18 @@ type RedfishHostInterfaceType struct {
 	HostInterfaceType *redfish.HostInterfaceType `json:"hostInterfaceType"`
 }
 
+type RedfishNetworkAdapter struct {
+	*redfish.NetworkAdapter
+}
+
+type RedfishNetworkDeviceFunction struct {
+	*redfish.NetworkDeviceFunction
+}
+
+type RedfishNetworkPort struct {
+	*redfish.NetworkPort
+}
+
 func createType(ctx context.Context, pt *types.Type) (err error) {
 	query := fmt.Sprintf("%s.types.root", pt.Schema.Title)
 	elements, err := qdsl.Qdsl(ctx, query)
@@ -480,6 +492,21 @@ func createRedfishHostInterfaceType(ctx context.Context) (err error) {
 	return createType(ctx, pt)
 }
 
+func createRedfishNetworkAdapterType(ctx context.Context) (err error) {
+	pt := types.ReflectType(&RedfishNetworkAdapter{})
+	return createType(ctx, pt)
+}
+
+func createRedfishNetworkDeviceFunctionType(ctx context.Context) (err error) {
+	pt := types.ReflectType(&RedfishNetworkDeviceFunction{})
+	return createType(ctx, pt)
+}
+
+func createRedfishNetworkPortType(ctx context.Context) (err error) {
+	pt := types.ReflectType(&RedfishNetworkPort{})
+	return createType(ctx, pt)
+}
+
 func createTypes(ctx context.Context) (err error) {
 	if err = createRedfishServiceType(ctx); err != nil {
 		return
@@ -623,6 +650,15 @@ func createTypes(ctx context.Context) (err error) {
 		return
 	}
 	if err = createRedfishHostInterfaceType(ctx); err != nil {
+		return
+	}
+	if err = createRedfishNetworkAdapterType(ctx); err != nil {
+		return
+	}
+	if err = createRedfishNetworkDeviceFunctionType(ctx); err != nil {
+		return
+	}
+	if err = createRedfishNetworkPortType(ctx); err != nil {
 		return
 	}
 	return
