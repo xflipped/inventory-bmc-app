@@ -19,6 +19,15 @@ import (
 
 const serviceMask = "service.*[?@._id == '%s'?].objects.root"
 
+type VendorSpecificData struct {
+	Name             string
+	ChassisSELLogs   string
+	SystemSELLogs    string
+	ManagerSELLogs   string
+	ManagerEventLogs string
+	ManagerAuditLogs string
+}
+
 func (a *Agent) inventoryFunction(ctx module.Context) (err error) {
 	var redfishDevice device.RedfishDevice
 	if err = json.Unmarshal(ctx.CmdbContext(), &redfishDevice); err != nil {
@@ -54,11 +63,28 @@ func (a *Agent) createOrUpdateService(ctx module.Context, service *gofish.Servic
 		return
 	}
 
+	vendorData := &VendorSpecificData{Name: service.Vendor}
+	a.updateVendorSpecificData(vendorData)
+
 	p := utils.NewParallel()
-	p.Exec(func() error { return a.createOrUpdateSystems(ctx, service, document) })
-	p.Exec(func() error { return a.createOrUpdateChasseez(ctx, service, document) })
-	p.Exec(func() error { return a.createOrUpdateManagers(ctx, service, document) })
+	p.Exec(func() error { return a.createOrUpdateSystems(ctx, service, document, vendorData) })
+	p.Exec(func() error { return a.createOrUpdateChasseez(ctx, service, document, vendorData) })
+	p.Exec(func() error { return a.createOrUpdateManagers(ctx, service, document, vendorData) })
 	return p.Wait()
+}
+
+func (a *Agent) updateVendorSpecificData(vendorData *VendorSpecificData) {
+	switch vendorData.Name {
+	case "AMI":
+		vendorData.ChassisSELLogs = "/redfish/v1/Chassis/Self/LogServices/Logs"
+		vendorData.SystemSELLogs = "/redfish/v1/Systems/Self/LogServices/BIOS"
+		vendorData.ManagerSELLogs = "/redfish/v1/Managers/Self/LogServices/SEL"
+		vendorData.ManagerEventLogs = "/redfish/v1/Managers/Self/LogServices/EventLog"
+		vendorData.ManagerAuditLogs = "/redfish/v1/Managers/Self/LogServices/AuditLog"
+	// TODO: add vendors
+	default:
+		// unknown vendor
+	}
 }
 
 func (a *Agent) createSyncCreateOrUpdateChild(from, moType, name string, payload any, format string, args ...any) (functionContext *pbtypes.FunctionContext, err error) {

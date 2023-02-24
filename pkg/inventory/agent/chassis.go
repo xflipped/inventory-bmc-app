@@ -57,7 +57,7 @@ const (
 	powerLimitSubPowerChassisMask            = "power-limit.%s.power.chassis-%s.service.*[?@._id == '%s'?].objects.root"
 )
 
-func (a *Agent) createOrUpdateChasseez(ctx module.Context, service *gofish.Service, parentNode *documents.Node) (err error) {
+func (a *Agent) createOrUpdateChasseez(ctx module.Context, service *gofish.Service, parentNode *documents.Node, vendorData *VendorSpecificData) (err error) {
 	chasseez, err := service.Chassis()
 	if err != nil {
 		return
@@ -66,13 +66,13 @@ func (a *Agent) createOrUpdateChasseez(ctx module.Context, service *gofish.Servi
 	p := utils.NewParallel()
 	for _, chassee := range chasseez {
 		chassee := chassee
-		p.Exec(func() error { return a.createOrUpdateChassee(ctx, parentNode, chassee) })
+		p.Exec(func() error { return a.createOrUpdateChassee(ctx, parentNode, chassee, vendorData) })
 	}
 	return p.Wait()
 }
 
 // TODO: check Chassis & RedfishDevice UUID, now they are the same
-func (a *Agent) createOrUpdateChassee(ctx module.Context, parentNode *documents.Node, chassis *redfish.Chassis) (err error) {
+func (a *Agent) createOrUpdateChassee(ctx module.Context, parentNode *documents.Node, chassis *redfish.Chassis, vendorData *VendorSpecificData) (err error) {
 	chassisLink := fmt.Sprintf("chassis-%s", chassis.UUID)
 
 	document, err := a.syncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishChassisID, chassisLink, chassis, chassisMask, chassis.UUID, ctx.Self().Id)
@@ -90,6 +90,7 @@ func (a *Agent) createOrUpdateChassee(ctx module.Context, parentNode *documents.
 	p.Exec(func() error { return a.createOrUpdateChassisPhysicalSecurity(ctx, document, chassis) })
 	p.Exec(func() error { return a.createOrUpdateChassisLocation(ctx, document, chassis) })
 	p.Exec(func() error { return a.createOrUpdateChassisSupportedResetTypes(ctx, document, chassis) })
+	p.Exec(func() error { return a.createOrUpdateChassisSELLogService(ctx, document, chassis, vendorData) })
 	return p.Wait()
 }
 

@@ -42,7 +42,7 @@ const (
 	postalAddressLocationSubSubSystemMask = "postal-address.location.%s.%s.system-%s.service.*[?@._id == '%s'?].objects.root"
 )
 
-func (a *Agent) createOrUpdateSystems(ctx module.Context, service *gofish.Service, parentNode *documents.Node) (err error) {
+func (a *Agent) createOrUpdateSystems(ctx module.Context, service *gofish.Service, parentNode *documents.Node, vendorData *VendorSpecificData) (err error) {
 	systems, err := service.Systems()
 	if err != nil {
 		return
@@ -50,12 +50,12 @@ func (a *Agent) createOrUpdateSystems(ctx module.Context, service *gofish.Servic
 	p := utils.NewParallel()
 	for _, computerSystem := range systems {
 		computerSystem := computerSystem
-		p.Exec(func() error { return a.createOrUpdateSystem(ctx, parentNode, computerSystem) })
+		p.Exec(func() error { return a.createOrUpdateSystem(ctx, parentNode, computerSystem, vendorData) })
 	}
 	return p.Wait()
 }
 
-func (a *Agent) createOrUpdateSystem(ctx module.Context, parentNode *documents.Node, computerSystem *redfish.ComputerSystem) (err error) {
+func (a *Agent) createOrUpdateSystem(ctx module.Context, parentNode *documents.Node, computerSystem *redfish.ComputerSystem, vendorData *VendorSpecificData) (err error) {
 	systemLink := fmt.Sprintf("system-%s", computerSystem.UUID)
 
 	document, err := a.syncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishSystemID, systemLink, computerSystem, systemMask, computerSystem.UUID, ctx.Self().Id)
@@ -83,6 +83,7 @@ func (a *Agent) createOrUpdateSystem(ctx module.Context, parentNode *documents.N
 	p.Exec(func() error { return a.createOrUpdateStorages(ctx, document, computerSystem) })
 	p.Exec(func() error { return a.createOrUpdateSystemNetworkInterfaces(ctx, document, computerSystem) })
 	p.Exec(func() error { return a.createOrUpdateSystemEthernetInterfaces(ctx, document, computerSystem) })
+	p.Exec(func() error { return a.createOrUpdateSystemSELLogService(ctx, document, computerSystem, vendorData) })
 	// TODO: add new entities if available etc.
 	return p.Wait()
 }

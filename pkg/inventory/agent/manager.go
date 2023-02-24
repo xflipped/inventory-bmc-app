@@ -24,7 +24,7 @@ const (
 	typeSubManagerMask      = "type.%s.manager-%s.service.*[?@._id == '%s'?].objects.root"
 )
 
-func (a *Agent) createOrUpdateManagers(ctx module.Context, service *gofish.Service, parentNode *documents.Node) (err error) {
+func (a *Agent) createOrUpdateManagers(ctx module.Context, service *gofish.Service, parentNode *documents.Node, vendorData *VendorSpecificData) (err error) {
 	managers, err := service.Managers()
 	if err != nil {
 		return
@@ -33,12 +33,12 @@ func (a *Agent) createOrUpdateManagers(ctx module.Context, service *gofish.Servi
 	p := utils.NewParallel()
 	for _, manager := range managers {
 		manager := manager
-		p.Exec(func() error { return a.createOrUpdateManager(ctx, parentNode, manager) })
+		p.Exec(func() error { return a.createOrUpdateManager(ctx, parentNode, manager, vendorData) })
 	}
 	return p.Wait()
 }
 
-func (a *Agent) createOrUpdateManager(ctx module.Context, parentNode *documents.Node, manager *redfish.Manager) (err error) {
+func (a *Agent) createOrUpdateManager(ctx module.Context, parentNode *documents.Node, manager *redfish.Manager, vendorData *VendorSpecificData) (err error) {
 	managerLink := fmt.Sprintf("manager-%s", manager.UUID)
 
 	document, err := a.syncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishManagerID, managerLink, manager, managerMask, manager.UUID, ctx.Self().Id)
@@ -52,6 +52,9 @@ func (a *Agent) createOrUpdateManager(ctx module.Context, parentNode *documents.
 	p.Exec(func() error { return a.createOrUpdateManagerCommandShell(ctx, document, manager) })
 	p.Exec(func() error { return a.createOrUpdateEthernetInterfaces(ctx, document, manager) })
 	p.Exec(func() error { return a.createOrUpdateHostInterfaces(ctx, document, manager) })
+	p.Exec(func() error { return a.createOrUpdateManagerSELLogService(ctx, document, manager, vendorData) })
+	p.Exec(func() error { return a.createOrUpdateManagerEventLogService(ctx, document, manager, vendorData) })
+	p.Exec(func() error { return a.createOrUpdateManagerAuditLogService(ctx, document, manager, vendorData) })
 	return p.Wait()
 }
 

@@ -65,6 +65,9 @@ const (
 	RedfishPostalAddressID         = "types/redfish-postal-address"
 	RedfishSupportedResetTypesID   = "types/redfish-supported-reset-types"
 
+	RedfishLogServiceID = "types/redfish-log-service"
+	RedfishLogEntryID   = "types/redfish-log-entry"
+
 	RootID = "system/root"
 )
 
@@ -98,6 +101,9 @@ const (
 	RedfishPowerLimitLink          = "power-limit"
 	RedfishPostalAddressLink       = "postal-address"
 	RedfishSupportedResetTypesLink = "supported-reset-types"
+	RedfishSELLogsLink             = "sel-logs"
+	RedfishEventLogsLink           = "event-logs"
+	RedfishAuditLogsLink           = "audit-logs"
 )
 
 const (
