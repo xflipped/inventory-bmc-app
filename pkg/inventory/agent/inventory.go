@@ -30,11 +30,13 @@ func (a *Agent) inventoryFunction(ctx module.Context) (err error) {
 		return
 	}
 
+	// TODO: check options
 	config := gofish.ClientConfig{
-		Endpoint: fmt.Sprintf("%s://%s", u.Scheme, u.Host),
-		Username: redfishDevice.Login,
-		Password: redfishDevice.Password,
-		Insecure: true,
+		Endpoint:  fmt.Sprintf("%s://%s", u.Scheme, u.Host),
+		Username:  redfishDevice.Login,
+		Password:  redfishDevice.Password,
+		Insecure:  true,
+		BasicAuth: true,
 	}
 
 	client, err := gofish.ConnectContext(ctx, config)

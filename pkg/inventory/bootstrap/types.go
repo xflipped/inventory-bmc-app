@@ -103,8 +103,32 @@ type RedfishMemory struct {
 	*redfish.Memory
 }
 
+type RedfishMemoryDomain struct {
+	*redfish.MemoryDomain
+}
+
 type RedfishHostWatchdogTimer struct {
 	*redfish.WatchdogTimer
+}
+
+type RedfishSimpleStorage struct {
+	*redfish.SimpleStorage
+}
+
+type RedfishStorage struct {
+	*redfish.Storage
+}
+
+type RedfishStorageDevice struct {
+	*redfish.Device
+}
+
+type RedfishDrive struct {
+	*redfish.Drive
+}
+
+type RedfishVolume struct {
+	*redfish.Volume
 }
 
 type RedfishThermal struct {
@@ -179,6 +203,10 @@ type RedfishCommandShell struct {
 	*redfish.CommandShell
 }
 
+type RedfishNetworkInterface struct {
+	*redfish.NetworkInterface
+}
+
 type RedfishEthernetInterface struct {
 	*redfish.EthernetInterface
 }
@@ -189,6 +217,18 @@ type RedfishHostInterface struct {
 
 type RedfishHostInterfaceType struct {
 	HostInterfaceType *redfish.HostInterfaceType `json:"hostInterfaceType"`
+}
+
+type RedfishNetworkAdapter struct {
+	*redfish.NetworkAdapter
+}
+
+type RedfishNetworkDeviceFunction struct {
+	*redfish.NetworkDeviceFunction
+}
+
+type RedfishNetworkPort struct {
+	*redfish.NetworkPort
 }
 
 func createType(ctx context.Context, pt *types.Type) (err error) {
@@ -312,8 +352,38 @@ func createRedfishMemory(ctx context.Context) (err error) {
 	return createType(ctx, pt)
 }
 
+func createRedfishMemoryDomain(ctx context.Context) (err error) {
+	pt := types.ReflectType(&RedfishMemoryDomain{})
+	return createType(ctx, pt)
+}
+
 func createRedfishHostWatchdogTimer(ctx context.Context) (err error) {
 	pt := types.ReflectType(&RedfishHostWatchdogTimer{})
+	return createType(ctx, pt)
+}
+
+func createRedfishSimpleStorage(ctx context.Context) (err error) {
+	pt := types.ReflectType(&RedfishSimpleStorage{})
+	return createType(ctx, pt)
+}
+
+func createRedfishStorage(ctx context.Context) (err error) {
+	pt := types.ReflectType(&RedfishStorage{})
+	return createType(ctx, pt)
+}
+
+func createRedfishStorageDevice(ctx context.Context) (err error) {
+	pt := types.ReflectType(&RedfishStorageDevice{})
+	return createType(ctx, pt)
+}
+
+func createRedfishDrive(ctx context.Context) (err error) {
+	pt := types.ReflectType(&RedfishDrive{})
+	return createType(ctx, pt)
+}
+
+func createRedfishVolume(ctx context.Context) (err error) {
+	pt := types.ReflectType(&RedfishVolume{})
 	return createType(ctx, pt)
 }
 
@@ -402,6 +472,11 @@ func createRedfishCommandShell(ctx context.Context) (err error) {
 	return createType(ctx, pt)
 }
 
+func createRedfishNetworkInterface(ctx context.Context) (err error) {
+	pt := types.ReflectType(&RedfishNetworkInterface{})
+	return createType(ctx, pt)
+}
+
 func createRedfishEthernetInterface(ctx context.Context) (err error) {
 	pt := types.ReflectType(&RedfishEthernetInterface{})
 	return createType(ctx, pt)
@@ -414,6 +489,21 @@ func createRedfishHostInterface(ctx context.Context) (err error) {
 
 func createRedfishHostInterfaceType(ctx context.Context) (err error) {
 	pt := types.ReflectType(&RedfishHostInterfaceType{})
+	return createType(ctx, pt)
+}
+
+func createRedfishNetworkAdapterType(ctx context.Context) (err error) {
+	pt := types.ReflectType(&RedfishNetworkAdapter{})
+	return createType(ctx, pt)
+}
+
+func createRedfishNetworkDeviceFunctionType(ctx context.Context) (err error) {
+	pt := types.ReflectType(&RedfishNetworkDeviceFunction{})
+	return createType(ctx, pt)
+}
+
+func createRedfishNetworkPortType(ctx context.Context) (err error) {
+	pt := types.ReflectType(&RedfishNetworkPort{})
 	return createType(ctx, pt)
 }
 
@@ -478,7 +568,25 @@ func createTypes(ctx context.Context) (err error) {
 	if err = createRedfishMemory(ctx); err != nil {
 		return
 	}
+	if err = createRedfishMemoryDomain(ctx); err != nil {
+		return
+	}
 	if err = createRedfishHostWatchdogTimer(ctx); err != nil {
+		return
+	}
+	if err = createRedfishSimpleStorage(ctx); err != nil {
+		return
+	}
+	if err = createRedfishStorage(ctx); err != nil {
+		return
+	}
+	if err = createRedfishStorageDevice(ctx); err != nil {
+		return
+	}
+	if err = createRedfishDrive(ctx); err != nil {
+		return
+	}
+	if err = createRedfishVolume(ctx); err != nil {
 		return
 	}
 	if err = createRedfishThermal(ctx); err != nil {
@@ -532,6 +640,9 @@ func createTypes(ctx context.Context) (err error) {
 	if err = createRedfishCommandShell(ctx); err != nil {
 		return
 	}
+	if err = createRedfishNetworkInterface(ctx); err != nil {
+		return
+	}
 	if err = createRedfishEthernetInterface(ctx); err != nil {
 		return
 	}
@@ -539,6 +650,15 @@ func createTypes(ctx context.Context) (err error) {
 		return
 	}
 	if err = createRedfishHostInterfaceType(ctx); err != nil {
+		return
+	}
+	if err = createRedfishNetworkAdapterType(ctx); err != nil {
+		return
+	}
+	if err = createRedfishNetworkDeviceFunctionType(ctx); err != nil {
+		return
+	}
+	if err = createRedfishNetworkPortType(ctx); err != nil {
 		return
 	}
 	return

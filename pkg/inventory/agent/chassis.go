@@ -27,6 +27,10 @@ const (
 	powerStateChassisMask            = "power-state.chassis-%s.service.*[?@._id == '%s'?].objects.root"
 	physicalSecurityChassisMask      = "physical-security.chassis-%s.service.*[?@._id == '%s'?].objects.root"
 	supportedResetTypesChassisMask   = "supported-reset-types.chassis-%s.service.*[?@._id == '%s'?].objects.root"
+	subChassisMask                   = "%s.chassis-%s.service.*[?@._id == '%s'?].objects.root"
+	statusSubChassisMask             = "status.%s.chassis-%s.service.*[?@._id == '%s'?].objects.root"
+	subSubChassisMask                = "%s.%s.chassis-%s.service.*[?@._id == '%s'?].objects.root"
+	statusSubSubChassisMask          = "status.%s.%s.chassis-%s.service.*[?@._id == '%s'?].objects.root"
 
 	// Chassis -> Thermal Subsystem
 	thermalChassisMask                         = "thermal.chassis-%s.service.*[?@._id == '%s'?].objects.root"
@@ -79,6 +83,7 @@ func (a *Agent) createOrUpdateChassee(ctx module.Context, parentNode *documents.
 	p := utils.NewParallel()
 	p.Exec(func() error { return a.createOrUpdateThermal(ctx, document, chassis) })
 	p.Exec(func() error { return a.createOrUpdatePower(ctx, document, chassis) })
+	p.Exec(func() error { return a.createOrUpdateNetworkAdapters(ctx, document, chassis) })
 	p.Exec(func() error { return a.createOrUpdateChassisLed(ctx, document, chassis) })
 	p.Exec(func() error { return a.createOrUpdateChassisStatus(ctx, document, chassis) })
 	p.Exec(func() error { return a.createOrUpdateChassisPowerState(ctx, document, chassis) })
@@ -144,28 +149,28 @@ func (a *Agent) createOrUpdateThermalFan(ctx module.Context, parentNode *documen
 
 	p := utils.NewParallel()
 	p.Exec(func() error {
-		return a.createOrUpdateFanStatus(ctx, chassis, document, fanLink, fan)
+		return a.createOrUpdateFanStatus(ctx, document, chassis, fanLink, fan)
 	})
 	p.Exec(func() error {
-		return a.createOrUpdateFanIndicatorLED(ctx, chassis, document, fanLink, fan)
+		return a.createOrUpdateFanIndicatorLED(ctx, document, chassis, fanLink, fan)
 	})
 	p.Exec(func() error {
-		return a.createOrUpdateFanLocation(ctx, chassis, document, fanLink, fan)
+		return a.createOrUpdateFanLocation(ctx, document, chassis, fanLink, fan)
 	})
 	return p.Wait()
 }
 
-func (a *Agent) createOrUpdateFanStatus(ctx module.Context, chassis *redfish.Chassis, parentNode *documents.Node, fanLink string, fan redfish.Fan) (err error) {
+func (a *Agent) createOrUpdateFanStatus(ctx module.Context, parentNode *documents.Node, chassis *redfish.Chassis, fanLink string, fan redfish.Fan) (err error) {
 	status := &bootstrap.RedfishStatus{Status: fan.Status}
 	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishStatusID, types.RedfishStatusLink, status, statusSubThermalChassisMask, fanLink, chassis.UUID, ctx.Self().Id)
 }
 
-func (a *Agent) createOrUpdateFanIndicatorLED(ctx module.Context, chassis *redfish.Chassis, parentNode *documents.Node, fanLink string, fan redfish.Fan) (err error) {
+func (a *Agent) createOrUpdateFanIndicatorLED(ctx module.Context, parentNode *documents.Node, chassis *redfish.Chassis, fanLink string, fan redfish.Fan) (err error) {
 	led := &bootstrap.RedfishLed{Led: fan.IndicatorLED}
 	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishLedID, types.RedfishLedLink, led, ledSubThermalChassisMask, fanLink, chassis.UUID, ctx.Self().Id)
 }
 
-func (a *Agent) createOrUpdateFanLocation(ctx module.Context, chassis *redfish.Chassis, parentNode *documents.Node, fanLink string, fan redfish.Fan) (err error) {
+func (a *Agent) createOrUpdateFanLocation(ctx module.Context, parentNode *documents.Node, chassis *redfish.Chassis, fanLink string, fan redfish.Fan) (err error) {
 	location := fan.Location
 
 	document, err := a.syncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishLocationID, types.RedfishLocationLink, location, locationSubThermalChassisMask, fanLink, chassis.UUID, ctx.Self().Id)
@@ -175,26 +180,26 @@ func (a *Agent) createOrUpdateFanLocation(ctx module.Context, chassis *redfish.C
 
 	p := utils.NewParallel()
 	p.Exec(func() error {
-		return a.createOrUpdateFanPartLocation(ctx, chassis, document, fanLink, location.PartLocation)
+		return a.createOrUpdateFanPartLocation(ctx, document, chassis, fanLink, location.PartLocation)
 	})
 	p.Exec(func() error {
-		return a.createOrUpdateFanPlacement(ctx, chassis, document, fanLink, location.Placement)
+		return a.createOrUpdateFanPlacement(ctx, document, chassis, fanLink, location.Placement)
 	})
 	p.Exec(func() error {
-		return a.createOrUpdateFanPostalAddress(ctx, chassis, document, fanLink, location.PostalAddress)
+		return a.createOrUpdateFanPostalAddress(ctx, document, chassis, fanLink, location.PostalAddress)
 	})
 	return p.Wait()
 }
 
-func (a *Agent) createOrUpdateFanPartLocation(ctx module.Context, chassis *redfish.Chassis, parentNode *documents.Node, fanLink string, partLocation common.PartLocation) (err error) {
+func (a *Agent) createOrUpdateFanPartLocation(ctx module.Context, parentNode *documents.Node, chassis *redfish.Chassis, fanLink string, partLocation common.PartLocation) (err error) {
 	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishPartLocationID, types.RedfishPartLocationLink, partLocation, partLocationLocationSubThermalChassisMask, fanLink, chassis.UUID, ctx.Self().Id)
 }
 
-func (a *Agent) createOrUpdateFanPlacement(ctx module.Context, chassis *redfish.Chassis, parentNode *documents.Node, fanLink string, placement common.Placement) (err error) {
+func (a *Agent) createOrUpdateFanPlacement(ctx module.Context, parentNode *documents.Node, chassis *redfish.Chassis, fanLink string, placement common.Placement) (err error) {
 	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishPlacementID, types.RedfishPlacementLink, placement, placementLocationSubThermalChassisMask, fanLink, chassis.UUID, ctx.Self().Id)
 }
 
-func (a *Agent) createOrUpdateFanPostalAddress(ctx module.Context, chassis *redfish.Chassis, parentNode *documents.Node, fanLink string, postalAddress common.PostalAddress) (err error) {
+func (a *Agent) createOrUpdateFanPostalAddress(ctx module.Context, parentNode *documents.Node, chassis *redfish.Chassis, fanLink string, postalAddress common.PostalAddress) (err error) {
 	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishPostalAddressID, types.RedfishPostalAddressLink, postalAddress, postalAddressLocationSubThermalChassisMask, fanLink, chassis.UUID, ctx.Self().Id)
 }
 
@@ -217,31 +222,31 @@ func (a *Agent) createOrUpdatePower(ctx module.Context, parentNode *documents.No
 
 	p := utils.NewParallel()
 	p.Exec(func() error {
-		return a.createOrUpdatePowerIndicatorLED(ctx, chassis, document, redfishPower.IndicatorLED)
+		return a.createOrUpdatePowerIndicatorLED(ctx, document, chassis, redfishPower.IndicatorLED)
 	})
 	for _, powerControl := range redfishPower.PowerControl {
 		powerControl := powerControl
-		p.Exec(func() error { return a.createOrUpdatePowerControl(ctx, chassis, document, powerControl) })
+		p.Exec(func() error { return a.createOrUpdatePowerControl(ctx, document, chassis, powerControl) })
 	}
 	for _, powerSupply := range redfishPower.PowerSupplies {
 		powerSupply := powerSupply
-		p.Exec(func() error { return a.createOrUpdatePowerSupply(ctx, chassis, document, powerSupply) })
+		p.Exec(func() error { return a.createOrUpdatePowerSupply(ctx, document, chassis, powerSupply) })
 	}
 	for _, voltage := range redfishPower.Voltages {
 		voltage := voltage
-		p.Exec(func() error { return a.createOrUpdateVoltage(ctx, chassis, document, voltage) })
+		p.Exec(func() error { return a.createOrUpdateVoltage(ctx, document, chassis, voltage) })
 	}
 	return p.Wait()
 }
 
-func (a *Agent) createOrUpdatePowerIndicatorLED(ctx module.Context, chassis *redfish.Chassis, parentNode *documents.Node, indicatorLED common.IndicatorLED) (err error) {
+func (a *Agent) createOrUpdatePowerIndicatorLED(ctx module.Context, parentNode *documents.Node, chassis *redfish.Chassis, indicatorLED common.IndicatorLED) (err error) {
 	led := &bootstrap.RedfishLed{Led: indicatorLED}
 	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishLedID, types.RedfishLedLink, led, ledPowerChassisMask, chassis.UUID, ctx.Self().Id)
 }
 
 // TODO: unique link
 // TODO: device with Id is present ? create : ignore
-func (a *Agent) createOrUpdatePowerControl(ctx module.Context, chassis *redfish.Chassis, parentNode *documents.Node, powerControl redfish.PowerControl) (err error) {
+func (a *Agent) createOrUpdatePowerControl(ctx module.Context, parentNode *documents.Node, chassis *redfish.Chassis, powerControl redfish.PowerControl) (err error) {
 	powerControlLink := fmt.Sprintf("power-control-%s", powerControl.MemberID)
 
 	document, err := a.syncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishPowerControlID, powerControlLink, powerControl, subPowerChassisMask, powerControlLink, chassis.UUID, ctx.Self().Id)
@@ -251,44 +256,44 @@ func (a *Agent) createOrUpdatePowerControl(ctx module.Context, chassis *redfish.
 
 	p := utils.NewParallel()
 	p.Exec(func() error {
-		return a.createOrUpdatePowerControlStatus(ctx, chassis, document, powerControlLink, powerControl)
+		return a.createOrUpdatePowerControlStatus(ctx, document, chassis, powerControlLink, powerControl)
 	})
 	p.Exec(func() error {
-		return a.createOrUpdatePowerControlPhysicalContext(ctx, chassis, document, powerControlLink, powerControl)
+		return a.createOrUpdatePowerControlPhysicalContext(ctx, document, chassis, powerControlLink, powerControl)
 	})
 	p.Exec(func() error {
-		return a.createOrUpdatePowerControlMetric(ctx, chassis, document, powerControlLink, powerControl)
+		return a.createOrUpdatePowerControlMetric(ctx, document, chassis, powerControlLink, powerControl)
 	})
 
 	p.Exec(func() error {
-		return a.createOrUpdatePowerControlLimit(ctx, chassis, document, powerControlLink, powerControl)
+		return a.createOrUpdatePowerControlLimit(ctx, document, chassis, powerControlLink, powerControl)
 	})
 	return p.Wait()
 }
 
-func (a *Agent) createOrUpdatePowerControlStatus(ctx module.Context, chassis *redfish.Chassis, parentNode *documents.Node, powerControlLink string, powerControl redfish.PowerControl) (err error) {
+func (a *Agent) createOrUpdatePowerControlStatus(ctx module.Context, parentNode *documents.Node, chassis *redfish.Chassis, powerControlLink string, powerControl redfish.PowerControl) (err error) {
 	status := &bootstrap.RedfishStatus{Status: powerControl.Status}
 	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishStatusID, types.RedfishStatusLink, status, statusSubPowerChassisMask, powerControlLink, chassis.UUID, ctx.Self().Id)
 }
 
-func (a *Agent) createOrUpdatePowerControlPhysicalContext(ctx module.Context, chassis *redfish.Chassis, parentNode *documents.Node, powerControlLink string, powerControl redfish.PowerControl) (err error) {
+func (a *Agent) createOrUpdatePowerControlPhysicalContext(ctx module.Context, parentNode *documents.Node, chassis *redfish.Chassis, powerControlLink string, powerControl redfish.PowerControl) (err error) {
 	physicalContext := &bootstrap.RedfishPhysicalContext{PhysicalContext: &powerControl.PhysicalContext}
 	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishPhysicalContextID, types.RedfishPhysicalContextLink, physicalContext, physicalContextSubPowerChassisMask, powerControlLink, chassis.UUID, ctx.Self().Id)
 }
 
-func (a *Agent) createOrUpdatePowerControlMetric(ctx module.Context, chassis *redfish.Chassis, parentNode *documents.Node, powerControlLink string, powerControl redfish.PowerControl) (err error) {
+func (a *Agent) createOrUpdatePowerControlMetric(ctx module.Context, parentNode *documents.Node, chassis *redfish.Chassis, powerControlLink string, powerControl redfish.PowerControl) (err error) {
 	powerMetric := powerControl.PowerMetrics
 	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishPowerMetricID, types.RedfishPowerMetricLink, powerMetric, powerMetricSubPowerChassisMask, powerControlLink, chassis.UUID, ctx.Self().Id)
 }
 
-func (a *Agent) createOrUpdatePowerControlLimit(ctx module.Context, chassis *redfish.Chassis, parentNode *documents.Node, powerControlLink string, powerControl redfish.PowerControl) (err error) {
+func (a *Agent) createOrUpdatePowerControlLimit(ctx module.Context, parentNode *documents.Node, chassis *redfish.Chassis, powerControlLink string, powerControl redfish.PowerControl) (err error) {
 	powerLimit := powerControl.PowerLimit
 	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishPowerLimitID, types.RedfishPowerLimitLink, powerLimit, powerLimitSubPowerChassisMask, powerControlLink, chassis.UUID, ctx.Self().Id)
 }
 
 // TODO: unique link
 // TODO: device with Id is present ? create : ignore
-func (a *Agent) createOrUpdatePowerSupply(ctx module.Context, chassis *redfish.Chassis, parentNode *documents.Node, powerSupply redfish.PowerSupply) (err error) {
+func (a *Agent) createOrUpdatePowerSupply(ctx module.Context, parentNode *documents.Node, chassis *redfish.Chassis, powerSupply redfish.PowerSupply) (err error) {
 	powerSupplyLink := fmt.Sprintf("power-supply-%s", powerSupply.MemberID)
 
 	document, err := a.syncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishPowerSupplyID, powerSupplyLink, powerSupply, subPowerChassisMask, powerSupplyLink, chassis.UUID, ctx.Self().Id)
@@ -298,28 +303,28 @@ func (a *Agent) createOrUpdatePowerSupply(ctx module.Context, chassis *redfish.C
 
 	p := utils.NewParallel()
 	p.Exec(func() error {
-		return a.createOrUpdatePowerSupplyStatus(ctx, chassis, document, powerSupplyLink, powerSupply)
+		return a.createOrUpdatePowerSupplyStatus(ctx, document, chassis, powerSupplyLink, powerSupply)
 	})
 	p.Exec(func() error {
-		return a.createOrUpdatePowerSupplyIndicatorLED(ctx, chassis, document, powerSupplyLink, powerSupply)
+		return a.createOrUpdatePowerSupplyIndicatorLED(ctx, document, chassis, powerSupplyLink, powerSupply)
 	})
 	p.Exec(func() error {
-		return a.createOrUpdatePowerSupplyLocation(ctx, chassis, document, powerSupplyLink, powerSupply)
+		return a.createOrUpdatePowerSupplyLocation(ctx, document, chassis, powerSupplyLink, powerSupply)
 	})
 	return p.Wait()
 }
 
-func (a *Agent) createOrUpdatePowerSupplyStatus(ctx module.Context, chassis *redfish.Chassis, parentNode *documents.Node, powerSupplyLink string, powerSupply redfish.PowerSupply) (err error) {
+func (a *Agent) createOrUpdatePowerSupplyStatus(ctx module.Context, parentNode *documents.Node, chassis *redfish.Chassis, powerSupplyLink string, powerSupply redfish.PowerSupply) (err error) {
 	status := &bootstrap.RedfishStatus{Status: powerSupply.Status}
 	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishStatusID, types.RedfishStatusLink, status, statusSubPowerChassisMask, powerSupplyLink, chassis.UUID, ctx.Self().Id)
 }
 
-func (a *Agent) createOrUpdatePowerSupplyIndicatorLED(ctx module.Context, chassis *redfish.Chassis, parentNode *documents.Node, powerSupplyLink string, powerSupply redfish.PowerSupply) (err error) {
+func (a *Agent) createOrUpdatePowerSupplyIndicatorLED(ctx module.Context, parentNode *documents.Node, chassis *redfish.Chassis, powerSupplyLink string, powerSupply redfish.PowerSupply) (err error) {
 	led := &bootstrap.RedfishLed{Led: powerSupply.IndicatorLED}
 	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishLedID, types.RedfishLedLink, led, ledSubPowerChassisMask, powerSupplyLink, chassis.UUID, ctx.Self().Id)
 }
 
-func (a *Agent) createOrUpdatePowerSupplyLocation(ctx module.Context, chassis *redfish.Chassis, parentNode *documents.Node, powerSupplyLink string, powerSupply redfish.PowerSupply) (err error) {
+func (a *Agent) createOrUpdatePowerSupplyLocation(ctx module.Context, parentNode *documents.Node, chassis *redfish.Chassis, powerSupplyLink string, powerSupply redfish.PowerSupply) (err error) {
 	location := powerSupply.Location
 
 	document, err := a.syncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishLocationID, types.RedfishLocationLink, location, locationSubPowerChassisMask, powerSupplyLink, chassis.UUID, ctx.Self().Id)
@@ -329,32 +334,32 @@ func (a *Agent) createOrUpdatePowerSupplyLocation(ctx module.Context, chassis *r
 
 	p := utils.NewParallel()
 	p.Exec(func() error {
-		return a.createOrUpdatePowerSupplyPartLocation(ctx, chassis, document, powerSupplyLink, location.PartLocation)
+		return a.createOrUpdatePowerSupplyPartLocation(ctx, document, chassis, powerSupplyLink, location.PartLocation)
 	})
 	p.Exec(func() error {
-		return a.createOrUpdatePowerSupplyPlacement(ctx, chassis, document, powerSupplyLink, location.Placement)
+		return a.createOrUpdatePowerSupplyPlacement(ctx, document, chassis, powerSupplyLink, location.Placement)
 	})
 	p.Exec(func() error {
-		return a.createOrUpdatePowerSupplyPostalAddress(ctx, chassis, document, powerSupplyLink, location.PostalAddress)
+		return a.createOrUpdatePowerSupplyPostalAddress(ctx, document, chassis, powerSupplyLink, location.PostalAddress)
 	})
 	return p.Wait()
 }
 
-func (a *Agent) createOrUpdatePowerSupplyPartLocation(ctx module.Context, chassis *redfish.Chassis, parentNode *documents.Node, powerSupplyLink string, partLocation common.PartLocation) (err error) {
+func (a *Agent) createOrUpdatePowerSupplyPartLocation(ctx module.Context, parentNode *documents.Node, chassis *redfish.Chassis, powerSupplyLink string, partLocation common.PartLocation) (err error) {
 	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishPartLocationID, types.RedfishPartLocationLink, partLocation, partLocationLocationSubPowerChassisMask, powerSupplyLink, chassis.UUID, ctx.Self().Id)
 }
 
-func (a *Agent) createOrUpdatePowerSupplyPlacement(ctx module.Context, chassis *redfish.Chassis, parentNode *documents.Node, powerSupplyLink string, placement common.Placement) (err error) {
+func (a *Agent) createOrUpdatePowerSupplyPlacement(ctx module.Context, parentNode *documents.Node, chassis *redfish.Chassis, powerSupplyLink string, placement common.Placement) (err error) {
 	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishPlacementID, types.RedfishPlacementLink, placement, placementLocationSubPowerChassisMask, powerSupplyLink, chassis.UUID, ctx.Self().Id)
 }
 
-func (a *Agent) createOrUpdatePowerSupplyPostalAddress(ctx module.Context, chassis *redfish.Chassis, parentNode *documents.Node, powerSupplyLink string, postalAddress common.PostalAddress) (err error) {
+func (a *Agent) createOrUpdatePowerSupplyPostalAddress(ctx module.Context, parentNode *documents.Node, chassis *redfish.Chassis, powerSupplyLink string, postalAddress common.PostalAddress) (err error) {
 	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishPostalAddressID, types.RedfishPostalAddressLink, postalAddress, postalAddressLocationSubPowerChassisMask, powerSupplyLink, chassis.UUID, ctx.Self().Id)
 }
 
 // TODO: unique link
 // TODO: device with Id is present ? create : ignore
-func (a *Agent) createOrUpdateVoltage(ctx module.Context, chassis *redfish.Chassis, parentNode *documents.Node, voltage redfish.Voltage) (err error) {
+func (a *Agent) createOrUpdateVoltage(ctx module.Context, parentNode *documents.Node, chassis *redfish.Chassis, voltage redfish.Voltage) (err error) {
 	voltageLink := fmt.Sprintf("voltage-%s", voltage.MemberID)
 
 	document, err := a.syncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishVoltageID, voltageLink, voltage, subPowerChassisMask, voltageLink, chassis.UUID, ctx.Self().Id)
@@ -368,6 +373,113 @@ func (a *Agent) createOrUpdateVoltage(ctx module.Context, chassis *redfish.Chass
 func (a *Agent) createOrUpdateVoltageStatus(ctx module.Context, parentNode *documents.Node, chassis *redfish.Chassis, voltageLink string, voltage redfish.Voltage) (err error) {
 	status := &bootstrap.RedfishStatus{Status: voltage.Status}
 	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishStatusID, types.RedfishStatusLink, status, statusSubPowerChassisMask, voltageLink, chassis.UUID, ctx.Self().Id)
+}
+
+func (a *Agent) createOrUpdateNetworkAdapters(ctx module.Context, parentNode *documents.Node, chassis *redfish.Chassis) (err error) {
+	networkAdapters, err := chassis.NetworkAdapters()
+	if err != nil {
+		return
+	}
+	p := utils.NewParallel()
+	for _, networkAdapter := range networkAdapters {
+		networkAdapter := networkAdapter
+		p.Exec(func() error { return a.createOrUpdateNetworkAdapter(ctx, parentNode, chassis, networkAdapter) })
+	}
+
+	return p.Wait()
+}
+
+func (a *Agent) createOrUpdateNetworkAdapter(ctx module.Context, parentNode *documents.Node, chassis *redfish.Chassis, networkAdapter *redfish.NetworkAdapter) (err error) {
+	networkAdapterLink := networkAdapter.ID
+
+	document, err := a.syncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishNetworkAdapterID, networkAdapterLink, networkAdapter, subChassisMask, networkAdapterLink, chassis.UUID, ctx.Self().Id)
+	if err != nil {
+		return
+	}
+
+	p := utils.NewParallel()
+	p.Exec(func() error {
+		return a.createOrUpdateNetworkAdapterStatus(ctx, document, chassis, networkAdapterLink, networkAdapter)
+	})
+	p.Exec(func() error {
+		return a.createOrUpdateNetworkAdapterDeviceFunctions(ctx, document, chassis, networkAdapterLink, networkAdapter)
+	})
+	p.Exec(func() error {
+		return a.createOrUpdateNetworkAdapterPorts(ctx, document, chassis, networkAdapterLink, networkAdapter)
+	})
+	return p.Wait()
+}
+
+func (a *Agent) createOrUpdateNetworkAdapterStatus(ctx module.Context, parentNode *documents.Node, chassis *redfish.Chassis, networkAdapterLink string, networkAdapter *redfish.NetworkAdapter) (err error) {
+	status := &bootstrap.RedfishStatus{Status: networkAdapter.Status}
+	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishStatusID, types.RedfishStatusLink, status, statusSubChassisMask, networkAdapterLink, chassis.UUID, ctx.Self().Id)
+}
+
+func (a *Agent) createOrUpdateNetworkAdapterDeviceFunctions(ctx module.Context, parentNode *documents.Node, chassis *redfish.Chassis, networkAdapterLink string, networkAdapter *redfish.NetworkAdapter) (err error) {
+	deviceFunctions, err := networkAdapter.NetworkDeviceFunctions()
+	if err != nil {
+		return
+	}
+
+	p := utils.NewParallel()
+	for _, deviceFunction := range deviceFunctions {
+		deviceFunction := deviceFunction
+		p.Exec(func() error {
+			return a.createOrUpdateNetworkAdapterDeviceFunction(ctx, parentNode, chassis, networkAdapterLink, deviceFunction)
+		})
+	}
+
+	return p.Wait()
+}
+
+func (a *Agent) createOrUpdateNetworkAdapterDeviceFunction(ctx module.Context, parentNode *documents.Node, chassis *redfish.Chassis, networkAdapterLink string, deviceFunction *redfish.NetworkDeviceFunction) (err error) {
+	deviceFunctionLink := deviceFunction.ID
+
+	document, err := a.syncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishNetworkDeviceFunctionID, deviceFunctionLink, deviceFunction, subSubChassisMask, deviceFunctionLink, networkAdapterLink, chassis.UUID, ctx.Self().Id)
+	if err != nil {
+		return
+	}
+
+	return a.createOrUpdateNetworkAdapterDeviceFunctionStatus(ctx, document, chassis, networkAdapterLink, deviceFunctionLink, deviceFunction)
+}
+
+func (a *Agent) createOrUpdateNetworkAdapterDeviceFunctionStatus(ctx module.Context, parentNode *documents.Node, chassis *redfish.Chassis, networkAdapterLink, deviceFunctionLink string, deviceFunction *redfish.NetworkDeviceFunction) (err error) {
+	status := &bootstrap.RedfishStatus{Status: deviceFunction.Status}
+	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishStatusID, types.RedfishStatusLink, status, statusSubSubChassisMask, deviceFunctionLink, networkAdapterLink, chassis.UUID, ctx.Self().Id)
+}
+
+func (a *Agent) createOrUpdateNetworkAdapterPorts(ctx module.Context, parentNode *documents.Node, chassis *redfish.Chassis, networkAdapterLink string, networkAdapter *redfish.NetworkAdapter) (err error) {
+	// TODO: check [] networkadapter.networkPorts
+	networkPorts, err := networkAdapter.NetworkPorts()
+	if err != nil {
+		return
+	}
+
+	p := utils.NewParallel()
+	for _, networkPort := range networkPorts {
+		networkPort := networkPort
+		p.Exec(func() error {
+			return a.createOrUpdateNetworkAdapterPort(ctx, parentNode, chassis, networkAdapterLink, networkPort)
+		})
+	}
+
+	return p.Wait()
+}
+
+func (a *Agent) createOrUpdateNetworkAdapterPort(ctx module.Context, parentNode *documents.Node, chassis *redfish.Chassis, networkAdapterLink string, networkPort *redfish.NetworkPort) (err error) {
+	networkPortLink := networkPort.ID
+
+	document, err := a.syncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishNetworkPortID, networkPortLink, networkPort, subSubChassisMask, networkPortLink, networkAdapterLink, chassis.UUID, ctx.Self().Id)
+	if err != nil {
+		return
+	}
+
+	return a.createOrUpdateNetworkAdapterPortStatus(ctx, document, chassis, networkAdapterLink, networkPortLink, networkPort)
+}
+
+func (a *Agent) createOrUpdateNetworkAdapterPortStatus(ctx module.Context, parentNode *documents.Node, chassis *redfish.Chassis, networkAdapterLink, networkPortLink string, networkPort *redfish.NetworkPort) (err error) {
+	status := &bootstrap.RedfishStatus{Status: networkPort.Status}
+	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishStatusID, types.RedfishStatusLink, status, statusSubSubChassisMask, networkPortLink, networkAdapterLink, chassis.UUID, ctx.Self().Id)
 }
 
 func (a *Agent) createOrUpdateChassisLed(ctx module.Context, parentNode *documents.Node, chassis *redfish.Chassis) (err error) {
@@ -399,21 +511,21 @@ func (a *Agent) createOrUpdateChassisLocation(ctx module.Context, parentNode *do
 	}
 
 	p := utils.NewParallel()
-	p.Exec(func() error { return a.createOrUpdatePartLocation(ctx, chassis, document, location.PartLocation) })
-	p.Exec(func() error { return a.createOrUpdatePlacement(ctx, chassis, document, location.Placement) })
-	p.Exec(func() error { return a.createOrUpdatePostalAddress(ctx, chassis, document, location.PostalAddress) })
+	p.Exec(func() error { return a.createOrUpdatePartLocation(ctx, document, chassis, location.PartLocation) })
+	p.Exec(func() error { return a.createOrUpdatePlacement(ctx, document, chassis, location.Placement) })
+	p.Exec(func() error { return a.createOrUpdatePostalAddress(ctx, document, chassis, location.PostalAddress) })
 	return p.Wait()
 }
 
-func (a *Agent) createOrUpdatePartLocation(ctx module.Context, chassis *redfish.Chassis, parentNode *documents.Node, partLocation common.PartLocation) (err error) {
+func (a *Agent) createOrUpdatePartLocation(ctx module.Context, parentNode *documents.Node, chassis *redfish.Chassis, partLocation common.PartLocation) (err error) {
 	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishPartLocationID, types.RedfishPartLocationLink, partLocation, partLocationLocationChassisMask, chassis.UUID, ctx.Self().Id)
 }
 
-func (a *Agent) createOrUpdatePlacement(ctx module.Context, chassis *redfish.Chassis, parentNode *documents.Node, placement common.Placement) (err error) {
+func (a *Agent) createOrUpdatePlacement(ctx module.Context, parentNode *documents.Node, chassis *redfish.Chassis, placement common.Placement) (err error) {
 	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishPlacementID, types.RedfishPlacementLink, placement, placementLocationChassisMask, chassis.UUID, ctx.Self().Id)
 }
 
-func (a *Agent) createOrUpdatePostalAddress(ctx module.Context, chassis *redfish.Chassis, parentNode *documents.Node, postalAddress common.PostalAddress) (err error) {
+func (a *Agent) createOrUpdatePostalAddress(ctx module.Context, parentNode *documents.Node, chassis *redfish.Chassis, postalAddress common.PostalAddress) (err error) {
 	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishPostalAddressID, types.RedfishPostalAddressLink, postalAddress, postalAddressLocationChassisMask, chassis.UUID, ctx.Self().Id)
 }
 
