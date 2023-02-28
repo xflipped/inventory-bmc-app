@@ -65,6 +65,9 @@ const (
 	RedfishPostalAddressID         = "types/redfish-postal-address"
 	RedfishSupportedResetTypesID   = "types/redfish-supported-reset-types"
 
+	RedfishLogServiceID = "types/redfish-log-service"
+	RedfishLogEntryID   = "types/redfish-log-entry"
+
 	RootID = "system/root"
 )
 

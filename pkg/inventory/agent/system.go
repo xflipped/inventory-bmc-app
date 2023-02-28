@@ -83,6 +83,7 @@ func (a *Agent) createOrUpdateSystem(ctx module.Context, parentNode *documents.N
 	p.Exec(func() error { return a.createOrUpdateStorages(ctx, document, computerSystem) })
 	p.Exec(func() error { return a.createOrUpdateSystemNetworkInterfaces(ctx, document, computerSystem) })
 	p.Exec(func() error { return a.createOrUpdateSystemEthernetInterfaces(ctx, document, computerSystem) })
+	p.Exec(func() error { return a.createOrUpdateSystemLogServices(ctx, document, computerSystem) })
 	// TODO: add new entities if available etc.
 	return p.Wait()
 }
