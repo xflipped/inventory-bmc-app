@@ -1,5 +1,5 @@
-github.com/Danile71/gofish v0.13.3 h1:iDmSljNVpbp3Ogphg2rRu/R9fcLqI6DmClWT0GEl7k0=
-github.com/Danile71/gofish v0.13.3/go.mod h1:BLDSFTp8pDlf/xDbLZa+F7f7eW0E/CHCboggsu8CznI=
+github.com/Danile71/gofish v0.13.4 h1:DFRfKKR5L33epKCwh9MgWDRxcKCN8/aIBc+d/Qf9yG8=
+github.com/Danile71/gofish v0.13.4/go.mod h1:BLDSFTp8pDlf/xDbLZa+F7f7eW0E/CHCboggsu8CznI=
 github.com/Shopify/sarama v1.38.1 h1:lqqPUPQZ7zPqYlWpTh+LQ9bhYNu2xJL6k1SJN4WVe2A=
 github.com/Shopify/sarama v1.38.1/go.mod h1:iwv9a67Ha8VNa+TifujYoWGxWnu2kNVAQdSdZ4X2o5g=
 github.com/Shopify/toxiproxy/v2 v2.5.0 h1:i4LPT+qrSlKNtQf5QliVjdP08GyAH8+BUIc9gT0eahc=

@@ -8,7 +8,7 @@ replace git.fg-tech.ru/listware/cmdb => github.com/foliagecp/cmdb v0.1.5
 
 replace git.fg-tech.ru/listware/go-core => github.com/foliagecp/go-core v0.1.6
 
-replace github.com/stmcginnis/gofish => github.com/Danile71/gofish v0.13.3
+replace github.com/stmcginnis/gofish => github.com/Danile71/gofish v0.13.4
 
 require (
 	git.fg-tech.ru/listware/cmdb v0.1.5
