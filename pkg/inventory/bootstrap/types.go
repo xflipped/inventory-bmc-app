@@ -231,6 +231,14 @@ type RedfishNetworkPort struct {
 	*redfish.NetworkPort
 }
 
+type RedfishLogService struct {
+	*redfish.LogService
+}
+
+type RedfishLogEntry struct {
+	*redfish.LogEntry
+}
+
 func createType(ctx context.Context, pt *types.Type) (err error) {
 	query := fmt.Sprintf("%s.types.root", pt.Schema.Title)
 	elements, err := qdsl.Qdsl(ctx, query)
@@ -507,6 +515,16 @@ func createRedfishNetworkPortType(ctx context.Context) (err error) {
 	return createType(ctx, pt)
 }
 
+func createRedfishLogServiceType(ctx context.Context) (err error) {
+	pt := types.ReflectType(&RedfishLogService{})
+	return createType(ctx, pt)
+}
+
+func createRedfishLogEntryType(ctx context.Context) (err error) {
+	pt := types.ReflectType(&RedfishLogEntry{})
+	return createType(ctx, pt)
+}
+
 func createTypes(ctx context.Context) (err error) {
 	if err = createRedfishServiceType(ctx); err != nil {
 		return
@@ -659,6 +677,12 @@ func createTypes(ctx context.Context) (err error) {
 		return
 	}
 	if err = createRedfishNetworkPortType(ctx); err != nil {
+		return
+	}
+	if err = createRedfishLogServiceType(ctx); err != nil {
+		return
+	}
+	if err = createRedfishLogEntryType(ctx); err != nil {
 		return
 	}
 	return

@@ -52,6 +52,7 @@ func (a *Agent) createOrUpdateManager(ctx module.Context, parentNode *documents.
 	p.Exec(func() error { return a.createOrUpdateManagerCommandShell(ctx, document, manager) })
 	p.Exec(func() error { return a.createOrUpdateEthernetInterfaces(ctx, document, manager) })
 	p.Exec(func() error { return a.createOrUpdateHostInterfaces(ctx, document, manager) })
+	p.Exec(func() error { return a.createOrUpdateManagerLogServices(ctx, document, manager) })
 	return p.Wait()
 }
 

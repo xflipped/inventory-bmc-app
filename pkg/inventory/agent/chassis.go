@@ -90,6 +90,7 @@ func (a *Agent) createOrUpdateChassee(ctx module.Context, parentNode *documents.
 	p.Exec(func() error { return a.createOrUpdateChassisPhysicalSecurity(ctx, document, chassis) })
 	p.Exec(func() error { return a.createOrUpdateChassisLocation(ctx, document, chassis) })
 	p.Exec(func() error { return a.createOrUpdateChassisSupportedResetTypes(ctx, document, chassis) })
+	p.Exec(func() error { return a.createOrUpdateChassisLogServices(ctx, document, chassis) })
 	return p.Wait()
 }
 
