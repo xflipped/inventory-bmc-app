@@ -2,7 +2,7 @@ module github.com/foliagecp/inventory-bmc-app
 
 go 1.19
 
-replace git.fg-tech.ru/listware/proto => github.com/foliagecp/proto v0.1.5
+replace git.fg-tech.ru/listware/proto => github.com/foliagecp/proto v0.1.6
 
 replace git.fg-tech.ru/listware/cmdb => github.com/foliagecp/cmdb v0.1.5
 
@@ -13,7 +13,7 @@ replace github.com/stmcginnis/gofish => github.com/Danile71/gofish v0.13.4
 require (
 	git.fg-tech.ru/listware/cmdb v0.1.5
 	git.fg-tech.ru/listware/go-core v0.1.6
-	git.fg-tech.ru/listware/proto v0.1.5
+	git.fg-tech.ru/listware/proto v0.1.6
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/koron/go-ssdp v0.0.3
 	github.com/manifoldco/promptui v0.9.0

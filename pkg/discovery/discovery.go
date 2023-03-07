@@ -29,11 +29,20 @@ func init() {
 		&cli.Command{
 			Name:        "run",
 			Description: "Run discovery",
+			Flags: []cli.Flag{
+				&cli.BoolFlag{
+					Name:    "monitor",
+					Aliases: []string{"m"},
+					Usage:   "Enable ssdp monitor",
+					Value:   false,
+					EnvVars: []string{"SSDP_MONITOR"},
+				},
+			},
 			Action: func(ctx *cli.Context) (err error) {
 				if err = bootstrap.Run(ctx.Context); err != nil {
 					return
 				}
-				return agent.Run(ctx.Context)
+				return agent.Run(ctx.Context, ctx.Bool("monitor"))
 			},
 		},
 	}
