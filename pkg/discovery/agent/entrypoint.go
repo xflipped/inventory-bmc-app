@@ -41,6 +41,7 @@ func (a *Agent) createOrUpdateAliveMessage(m *ssdp.AliveMessage) (err error) {
 		return
 	}
 
+	// FIXME fix if http
 	u.Scheme = "https"
 
 	redfishDevice := description.ToDevice(u)
