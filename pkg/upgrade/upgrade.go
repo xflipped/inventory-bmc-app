@@ -77,7 +77,7 @@ func upgrade(ctx context.Context, device device.RedfishDevice, file, ftype, targ
 	}
 
 	config := gofish.ClientConfig{
-		Endpoint:  fmt.Sprintf("%s://%s", u.Scheme, u.Host),
+		Endpoint:  fmt.Sprintf("%s://%s", u.Scheme, u.Hostname()),
 		Username:  device.Login,
 		Password:  device.Password,
 		Insecure:  true,
