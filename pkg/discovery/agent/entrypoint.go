@@ -66,7 +66,7 @@ func (a *Agent) createOrUpdate(redfishDevice device.RedfishDevice, parentID stri
 		},
 	}
 
-	resp, err := client.Get(fmt.Sprintf("%s://%s/redfish/v1", u.Scheme, u.Host))
+	resp, err := client.Get(fmt.Sprintf("%s://%s/redfish/v1", u.Scheme, u.Hostname()))
 	if err != nil {
 		return
 	}

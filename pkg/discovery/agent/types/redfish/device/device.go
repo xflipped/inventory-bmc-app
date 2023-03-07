@@ -17,10 +17,6 @@ type RedfishDevice struct {
 	Password    string      `json:"password,omitempty"`
 }
 
-// func (s RedfishDevice) UUID() string {
-// 	return strings.TrimPrefix(s.Description.Device.UDN, "uuid:")
-// }
-
 func GetDescription(url string) (d Description, err error) {
 	resp, err := http.Get(url)
 	if err != nil {

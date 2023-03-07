@@ -32,7 +32,7 @@ func (a *Agent) inventoryFunction(ctx module.Context) (err error) {
 
 	// TODO: check options
 	config := gofish.ClientConfig{
-		Endpoint:  fmt.Sprintf("%s://%s", u.Scheme, u.Host),
+		Endpoint:  fmt.Sprintf("%s://%s", u.Scheme, u.Hostname()),
 		Username:  redfishDevice.Login,
 		Password:  redfishDevice.Password,
 		Insecure:  true,
