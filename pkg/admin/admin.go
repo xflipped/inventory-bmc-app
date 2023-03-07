@@ -5,8 +5,10 @@ package admin
 import (
 	discovery "github.com/foliagecp/inventory-bmc-app/pkg/discovery/cli"
 	inventory "github.com/foliagecp/inventory-bmc-app/pkg/inventory/cli"
+	led "github.com/foliagecp/inventory-bmc-app/pkg/led/cli"
 	"github.com/foliagecp/inventory-bmc-app/pkg/upgrade"
 	"github.com/manifoldco/promptui"
+	"github.com/stmcginnis/gofish/common"
 	"github.com/urfave/cli/v2"
 )
 
@@ -107,6 +109,32 @@ func init() {
 				ftype := ctx.String("type")
 				target := ctx.String("target")
 				return upgrade.Upgrade(ctx.Context, query, file, ftype, target)
+			},
+		},
+
+		&cli.Command{
+			Name:        "led",
+			Description: "Update chassis indicator LED",
+			Flags: []cli.Flag{
+				&cli.StringFlag{
+					Name:     "query",
+					Aliases:  []string{"q"},
+					Required: true,
+					Usage:    "qdsl query to redfish device",
+				},
+			},
+			Action: func(ctx *cli.Context) (err error) {
+				query := ctx.String("query")
+				prompt := promptui.Select{
+					Label: "Select IndicatorLED mode",
+					Items: []common.IndicatorLED{common.BlinkingIndicatorLED, common.OffIndicatorLED, common.LitIndicatorLED},
+				}
+				_, mode, err := prompt.Run()
+				if err != nil {
+					return
+				}
+
+				return led.Led(ctx.Context, query, common.IndicatorLED(mode))
 			},
 		},
 	}
