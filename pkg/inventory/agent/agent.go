@@ -4,7 +4,6 @@ package agent
 
 import (
 	"context"
-	"strings"
 
 	"git.fg-tech.ru/listware/go-core/pkg/executor"
 	"git.fg-tech.ru/listware/go-core/pkg/module"
@@ -37,14 +36,10 @@ func Run(ctx context.Context) (err error) {
 	return a.run()
 }
 
-func appendPath(paths ...string) string {
-	return strings.Join(paths, ".")
-}
-
 func (a *Agent) run() (err error) {
 	defer a.executor.Close()
 
-	log.Infof("run system agent")
+	log.Infof("run inventory agent")
 
 	a.osSignalCtrl()
 

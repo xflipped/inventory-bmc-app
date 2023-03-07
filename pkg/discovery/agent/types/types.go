@@ -7,8 +7,8 @@ const (
 	Namespace = "proxy.foliage"
 
 	// FunctionType will be as default qdsl to function
-	FunctionType = FunctionPath
-	Description  = "discovery redfish function"
+	DiscoveryFunctionType = DiscoveryFunctionPath
+	Description           = "discovery redfish function"
 )
 
 const (
@@ -24,12 +24,12 @@ const (
 const (
 	RedfishDevicesLink    = "redfish-devices"
 	FunctionContainerLink = "discovery-bmc"
-	FunctionLink          = "discovery"
+	DiscoveryFunctionLink = "discovery"
 )
 
 const (
 	RedfishDevicesPath    = "redfish-devices.root"
 	FunctionsPath         = "functions.root"
 	FunctionContainerPath = "discovery-bmc.functions.root"
-	FunctionPath          = "discovery.discovery-bmc.functions.root"
+	DiscoveryFunctionPath = "discovery.discovery-bmc.functions.root"
 )

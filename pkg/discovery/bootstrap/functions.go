@@ -13,7 +13,7 @@ import (
 
 func createDiscoveryFunctionObject(ctx context.Context) (err error) {
 	// check if object exists
-	elements, err := qdsl.Qdsl(ctx, types.FunctionPath)
+	elements, err := qdsl.Qdsl(ctx, types.DiscoveryFunctionPath)
 	if err != nil {
 		return
 	}
@@ -23,15 +23,16 @@ func createDiscoveryFunctionObject(ctx context.Context) (err error) {
 		return
 	}
 
-	function := pbtypes.Function{
+	function := &pbtypes.Function{
 		FunctionType: &pbtypes.FunctionType{
 			Namespace: types.Namespace,
-			Type:      types.FunctionType,
+			Type:      types.DiscoveryFunctionType,
 		},
 		Description: types.Description,
+		Grounded:    false,
 	}
 
-	message, err := system.RegisterObject(types.FunctionContainerPath, types.FunctionID, types.FunctionLink, function, true, true)
+	message, err := system.RegisterObject(types.FunctionContainerPath, types.FunctionID, types.DiscoveryFunctionLink, function, true, true)
 	if err != nil {
 		return
 	}

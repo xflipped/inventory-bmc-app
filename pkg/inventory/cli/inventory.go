@@ -1,10 +1,9 @@
 // Copyright 2023 NJWS Inc.
 
-package agent
+package cli
 
 import (
 	"context"
-	"fmt"
 
 	"git.fg-tech.ru/listware/cmdb/pkg/cmdb/documents"
 	"git.fg-tech.ru/listware/cmdb/pkg/cmdb/qdsl"
@@ -20,19 +19,7 @@ var (
 	log = logrus.New()
 )
 
-func getDocument(ctx context.Context, query string) (node *documents.Node, err error) {
-	nodes, err := qdsl.Qdsl(ctx, query, qdsl.WithKey(), qdsl.WithId(), qdsl.WithType(), qdsl.WithLinkId())
-	if err != nil {
-		return
-	}
-	for _, node = range nodes {
-		return
-	}
-	err = fmt.Errorf("document '%s' not found", query)
-	return
-}
-
-func ChangeCredentials(ctx context.Context, query, login, password string) (err error) {
+func Inventory(ctx context.Context, query, login, password string) (err error) {
 	executor, err := executor.New()
 	if err != nil {
 		return

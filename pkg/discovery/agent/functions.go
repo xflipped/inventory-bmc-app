@@ -4,17 +4,20 @@ package agent
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+
+	"github.com/foliagecp/inventory-bmc-app/pkg/utils"
 
 	"git.fg-tech.ru/listware/go-core/pkg/client/system"
 	"git.fg-tech.ru/listware/proto/sdk/pbtypes"
-	"github.com/foliagecp/inventory-bmc-app/pkg/inventory/agent/types"
-	"github.com/foliagecp/inventory-bmc-app/pkg/utils"
+	"github.com/foliagecp/inventory-bmc-app/pkg/discovery/agent/types"
+	"github.com/foliagecp/inventory-bmc-app/pkg/discovery/agent/types/redfish/device"
 )
 
 func createOrUpdateFunctionLink(ctx context.Context, fromQuery, toQuery, name string) (functionContext *pbtypes.FunctionContext, err error) {
 	route := &pbtypes.FunctionRoute{
-		Url: "http://inventory-bmc:31001/statefun",
+		Url: "http://discovery-bmc:31002/statefun",
 	}
 
 	query := fmt.Sprintf("%s.%s", name, fromQuery)
@@ -45,13 +48,15 @@ func (a *Agent) createOrUpdateFunctionLink(fromQuery, toQuery, name string) (err
 	return a.executor.ExecSync(a.ctx, functionContext)
 }
 
-func PrepareInventoryFunc(id string) (fc *pbtypes.FunctionContext, err error) {
+func PrepareDiscoveryFunc(id string, redfishDevice device.RedfishDevice) (fc *pbtypes.FunctionContext, err error) {
 	fc = &pbtypes.FunctionContext{
 		Id: id,
 		FunctionType: &pbtypes.FunctionType{
 			Namespace: types.Namespace,
-			Type:      types.InventoryFunctionPath,
+			Type:      types.DiscoveryFunctionPath,
 		},
 	}
+
+	fc.Value, err = json.Marshal(redfishDevice)
 	return
 }

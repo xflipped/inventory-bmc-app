@@ -55,7 +55,7 @@ func createRedFishMountpointObject(ctx context.Context) (err error) {
 }
 
 func createInventoryFunctionObject(ctx context.Context) (err error) {
-	function := pbtypes.Function{
+	function := &pbtypes.Function{
 		FunctionType: &pbtypes.FunctionType{
 			Namespace: types.Namespace,
 			Type:      types.InventoryFunctionType,
