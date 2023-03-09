@@ -23,7 +23,7 @@ func createLedFunctionObject(ctx context.Context) (err error) {
 		return
 	}
 
-	function := pbtypes.Function{
+	function := &pbtypes.Function{
 		FunctionType: &pbtypes.FunctionType{
 			Namespace: types.Namespace,
 			Type:      types.LedFunctionType,
