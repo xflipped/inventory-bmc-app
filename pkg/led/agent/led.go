@@ -20,9 +20,9 @@ import (
 // 3. get redfish client using api, login and password from redfish device object
 // 4. get chassis using client to fill etag value for PATCH requests
 // 5. update chassis with indicator led
-// 6. run re-inventory
+// 6. rerun inventory
 
-// ledFunction execute on id '[device-uuid].redfish-devices.root'
+// ledFunction executes on '[device-uuid].redfish-devices.root'
 func (a *Agent) ledFunction(ctx module.Context) (err error) {
 	var redfishDevice device.RedfishDevice
 	if err = json.Unmarshal(ctx.CmdbContext(), &redfishDevice); err != nil {
