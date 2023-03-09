@@ -49,8 +49,7 @@ jobs:
           args: --timeout=5m -v
  
   deploy:
-    # needs: [build, golangci]
-    needs: [build]
+    needs: [build, golangci]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the repository
