@@ -1,0 +1,92 @@
+name: CI
+
+on:
+  push:
+    branches: [ "actions" ]
+  pull_request:
+    branches: [ "actions" ]
+permissions:
+  contents: read
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    # Checkout the repo
+    - uses: actions/checkout@v3
+
+    # Set up Go environment
+    - name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: 1.19
+        cache: true
+    
+    # Build and examine Go source code
+    - name: Build
+      run: go build -v ./...
+
+    - name: Test
+      run: go test -v ./...
+
+    - name: Vet
+      run: go vet -v ./...
+
+  golangci:
+    name: Golangci
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version: 1.19
+          cache: true
+      
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: latest
+          # TODO:
+          # config: golangci.yml
+          args: --timeout=5m -v
+ 
+  deploy:
+  needs: [build, lint]
+  steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-go@v3
+      with:
+        go-version: 1.19
+        cache: true
+
+    # Build and push images to private repository
+    - name: Build and push inventory-bmc-app
+      uses: mr-smithers-excellent/docker-build-push@v6
+      with:
+        image: xflipped/inventory-bmc-app
+        tags: dev
+        registry: ghcr.io
+        dockerfile: Dockerfile.inventory
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Build and push discovery-bmc-app
+      uses: mr-smithers-excellent/docker-build-push@v6
+      with:
+        image: xflipped/discovery-bmc-app
+        tags: dev
+        registry: ghcr.io
+        dockerfile: Dockerfile.discovery
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Build and push led-bmc-app
+      uses: mr-smithers-excellent/docker-build-push@v6
+      with:
+        image: xflipped/led-bmc-app
+        tags: dev
+        registry: ghcr.io
+        dockerfile: Dockerfile.led
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
