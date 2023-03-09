@@ -4,8 +4,6 @@ package agent
 
 import (
 	"encoding/json"
-	"fmt"
-	"net/url"
 
 	"git.fg-tech.ru/listware/cmdb/pkg/cmdb/documents"
 	"git.fg-tech.ru/listware/go-core/pkg/client/system"
@@ -25,25 +23,12 @@ func (a *Agent) inventoryFunction(ctx module.Context) (err error) {
 		return
 	}
 
-	u, err := url.Parse(redfishDevice.Api)
+	client, err := utils.ConnectToRedfish(ctx, redfishDevice)
 	if err != nil {
-		return
-	}
-
-	// TODO: check options
-	config := gofish.ClientConfig{
-		Endpoint:  fmt.Sprintf("%s://%s", u.Scheme, u.Hostname()),
-		Username:  redfishDevice.Login,
-		Password:  redfishDevice.Password,
-		Insecure:  true,
-		BasicAuth: true,
-	}
-
-	client, err := gofish.ConnectContext(ctx, config)
-	if err != nil {
-		return
+		return err
 	}
 	defer client.Logout()
+
 	// create/update main (root) service
 	return a.createOrUpdateService(ctx, client.GetService())
 }
