@@ -52,7 +52,7 @@ jobs:
           args: --timeout=5m -v
  
   deploy:
-    needs: [build, lint]
+    needs: [build, golangci]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
