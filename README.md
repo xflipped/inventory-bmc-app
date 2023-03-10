@@ -8,6 +8,8 @@ docker build -t ghcr.io/foliagecp/discovery-bmc-app -f Dockerfile.discovery .
 docker build -t ghcr.io/foliagecp/inventory-bmc-app -f Dockerfile.inventory .
 
 docker build -t ghcr.io/foliagecp/led-bmc-app -f Dockerfile.led .
+
+docker build -t ghcr.io/foliagecp/reset-bmc-app -f Dockerfile.reset .
 ```
 
 ## Test
@@ -84,6 +86,29 @@ docker build -t ghcr.io/foliagecp/led-bmc-app -f Dockerfile.led .
       CMDB_PORT: ${CMDB_PORT}
     healthcheck:
       test: curl --fail http://0.0.0.0:31003/readyz || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 8
+      start_period: 10s
+
+  reset-bmc:
+    image: ghcr.io/foliagecp/reset-bmc-app:${RESET_BMC_VERSION:-latest}
+    hostname: reset-bmc
+    ports:
+      - "31004:31004"
+    depends_on:
+      inventory-bmc:
+        condition: service_healthy
+    networks:
+      default:
+        aliases:
+          - reset-bmc
+    environment:
+      KAFKA_ADDR: ${KAFKA_ADDR}
+      CMDB_ADDR: ${CMDB_ADDR}
+      CMDB_PORT: ${CMDB_PORT}
+    healthcheck:
+      test: curl --fail http://0.0.0.0:31004/readyz || exit 1
       interval: 10s
       timeout: 5s
       retries: 8
