@@ -6,9 +6,11 @@ import (
 	discovery "github.com/foliagecp/inventory-bmc-app/pkg/discovery/cli"
 	inventory "github.com/foliagecp/inventory-bmc-app/pkg/inventory/cli"
 	led "github.com/foliagecp/inventory-bmc-app/pkg/led/cli"
+	reset "github.com/foliagecp/inventory-bmc-app/pkg/reset/cli"
 	"github.com/foliagecp/inventory-bmc-app/pkg/upgrade"
 	"github.com/manifoldco/promptui"
 	"github.com/stmcginnis/gofish/common"
+	"github.com/stmcginnis/gofish/redfish"
 	"github.com/urfave/cli/v2"
 )
 
@@ -135,6 +137,32 @@ func init() {
 				}
 
 				return led.Led(ctx.Context, query, common.IndicatorLED(mode))
+			},
+		},
+
+		&cli.Command{
+			Name:        "reset",
+			Description: "Reset system",
+			Flags: []cli.Flag{
+				&cli.StringFlag{
+					Name:     "query",
+					Aliases:  []string{"q"},
+					Required: true,
+					Usage:    "qdsl query to redfish device",
+				},
+			},
+			Action: func(ctx *cli.Context) (err error) {
+				query := ctx.String("query")
+				prompt := promptui.Select{
+					Label: "Select reset type",
+					Items: []redfish.ResetType{redfish.OnResetType, redfish.GracefulShutdownResetType, redfish.ForceOffResetType, redfish.ForceRestartResetType},
+				}
+				_, resetType, err := prompt.Run()
+				if err != nil {
+					return
+				}
+
+				return reset.Reset(ctx.Context, query, redfish.ResetType(resetType))
 			},
 		},
 	}
