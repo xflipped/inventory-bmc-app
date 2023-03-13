@@ -42,8 +42,6 @@ jobs:
         uses: golangci/golangci-lint-action@v3
         with:
           version: latest
-          # TODO:
-          # config: golangci.yml
           args: --timeout=5m -v
  
   deploy:
