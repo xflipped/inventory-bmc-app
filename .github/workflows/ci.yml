@@ -2,7 +2,7 @@ name: CI
 
 on:
   pull_request:
-    branches: ["dev", "test", "actions2"]
+    branches: ["dev", "test", "reset_app"]
     types: [opened, synchronize, reopened, closed]
 permissions:
   packages: write
