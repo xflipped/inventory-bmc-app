@@ -10,6 +10,7 @@ permissions:
 jobs:
 
   build:
+    if: github.event.pull_request.merged == false
     runs-on: ubuntu-latest
     steps:
     # Checkout the repo
@@ -34,6 +35,7 @@ jobs:
       run: go vet -v ./...
 
   golangci:
+    if: github.event.pull_request.merged == false
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the repository
@@ -47,7 +49,6 @@ jobs:
           args: --timeout=5m -v
  
   deploy:
-    needs: [build, golangci]
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
