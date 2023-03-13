@@ -43,6 +43,7 @@ jobs:
         uses: golangci/golangci-lint-action@v3
         with:
           version: latest
+          # TODO: add config
           args: --timeout=5m -v
  
   deploy:
