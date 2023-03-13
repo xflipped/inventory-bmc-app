@@ -3,6 +3,7 @@ name: CI
 on:
   pull_request:
     branches: ["dev", "actions", "actions2"]
+    types: [opened, edited, closed]
 permissions:
   contents: read
 
