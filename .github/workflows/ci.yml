@@ -49,13 +49,12 @@ jobs:
  
   deploy:
     needs: [build, golangci]
-    if_merged:
-      if: github.event.pull_request.merged == true
-      runs-on: ubuntu-latest
-      steps:
+    runs-on: ubuntu-latest
+    steps:
+      if_merged:
+        if: github.event.pull_request.merged == true
         - name: Checkout the repository
           uses: actions/checkout@v3
-
         # Build and push images to private repository
         - name: Build and push inventory-bmc-app
           uses: mr-smithers-excellent/docker-build-push@v6
