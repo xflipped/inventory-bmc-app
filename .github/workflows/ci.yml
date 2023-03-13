@@ -1,10 +1,9 @@
 name: CI
 
 on:
-  push:
-    branches: [ "actions" ]
   pull_request:
-    branches: [ "actions" ]
+    branches: ["actions", "actions2"]
+    types: [opened, closed]
 permissions:
   contents: read
 
@@ -50,41 +49,43 @@ jobs:
  
   deploy:
     needs: [build, golangci]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout the repository
-        uses: actions/checkout@v3
+    if_merged:
+      if: github.event.pull_request.merged == true
+      runs-on: ubuntu-latest
+      steps:
+        - name: Checkout the repository
+          uses: actions/checkout@v3
 
-      # Build and push images to private repository
-      - name: Build and push inventory-bmc-app
-        uses: mr-smithers-excellent/docker-build-push@v6
-        with:
-          image: inventory-bmc-app
-          tags: dev
-          registry: ghcr.io
-          githubOrg: foliagecp
-          dockerfile: Dockerfile.inventory
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+        # Build and push images to private repository
+        - name: Build and push inventory-bmc-app
+          uses: mr-smithers-excellent/docker-build-push@v6
+          with:
+            image: inventory-bmc-app
+            tags: dev
+            registry: ghcr.io
+            githubOrg: ${{ vars._GITHUB_ORG }}
+            dockerfile: Dockerfile.inventory
+            username: ${{ secrets.DOCKER_USERNAME }}
+            password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and push discovery-bmc-app
-        uses: mr-smithers-excellent/docker-build-push@v6
-        with:
-          image: discovery-bmc-app
-          tags: dev
-          registry: ghcr.io
-          githubOrg: foliagecp
-          dockerfile: Dockerfile.discovery
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+        - name: Build and push discovery-bmc-app
+          uses: mr-smithers-excellent/docker-build-push@v6
+          with:
+            image: discovery-bmc-app
+            tags: dev
+            registry: ghcr.io
+            githubOrg: ${{ vars._GITHUB_ORG }}
+            dockerfile: Dockerfile.discovery
+            username: ${{ secrets.DOCKER_USERNAME }}
+            password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and push led-bmc-app
-        uses: mr-smithers-excellent/docker-build-push@v6
-        with:
-          image: led-bmc-app
-          tags: dev
-          registry: ghcr.io
-          githubOrg: foliagecp
-          dockerfile: Dockerfile.led
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+        - name: Build and push led-bmc-app
+          uses: mr-smithers-excellent/docker-build-push@v6
+          with:
+            image: led-bmc-app
+            tags: dev
+            registry: ghcr.io
+            githubOrg: ${{ vars._GITHUB_ORG }}
+            dockerfile: Dockerfile.led
+            username: ${{ secrets.DOCKER_USERNAME }}
+            password: ${{ secrets.DOCKER_PASSWORD }}
