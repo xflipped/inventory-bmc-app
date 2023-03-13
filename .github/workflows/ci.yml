@@ -2,8 +2,7 @@ name: CI
 
 on:
   pull_request:
-    branches: ["actions", "actions2"]
-    types: [opened, closed]
+    branches: ["dev", "actions", "actions2"]
 permissions:
   contents: read
 
@@ -43,8 +42,6 @@ jobs:
         uses: golangci/golangci-lint-action@v3
         with:
           version: latest
-          # TODO:
-          # config: golangci.yml
           args: --timeout=5m -v
  
   deploy:
@@ -62,7 +59,7 @@ jobs:
           image: inventory-bmc-app
           tags: dev
           registry: ghcr.io
-          githubOrg: ${{ vars._GITHUB_ORG }}
+          githubOrg: ${{ github.repository_owner }}
           dockerfile: Dockerfile.inventory
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
@@ -73,7 +70,7 @@ jobs:
           image: discovery-bmc-app
           tags: dev
           registry: ghcr.io
-          githubOrg: ${{ vars._GITHUB_ORG }}
+          githubOrg: ${{ github.repository_owner }}
           dockerfile: Dockerfile.discovery
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
@@ -84,7 +81,7 @@ jobs:
           image: led-bmc-app
           tags: dev
           registry: ghcr.io
-          githubOrg: ${{ vars._GITHUB_ORG }}
+          githubOrg: ${{ github.repository_owner }}
           dockerfile: Dockerfile.led
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
