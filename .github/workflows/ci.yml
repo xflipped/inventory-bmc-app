@@ -46,7 +46,6 @@ jobs:
         uses: golangci/golangci-lint-action@v3
         with:
           version: latest
-          # TODO: add yml config
           args: --timeout=5m -v
  
   deploy:
@@ -87,5 +86,16 @@ jobs:
           registry: ghcr.io
           githubOrg: ${{ github.repository_owner }}
           dockerfile: Dockerfile.led
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push reset-bmc-app
+        uses: mr-smithers-excellent/docker-build-push@v6
+        with:
+          image: reset-bmc-app
+          tags: dev
+          registry: ghcr.io
+          githubOrg: ${{ github.repository_owner }}
+          dockerfile: Dockerfile.reset
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
