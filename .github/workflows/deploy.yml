@@ -1,0 +1,86 @@
+name: Deploy
+
+on:
+  pull_request:
+    branches: ["dev"]
+    types: [closed]
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  deploy-inventory:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v3
+
+      - name: Build and push inventory-bmc-app
+        uses: mr-smithers-excellent/docker-build-push@v6
+        with:
+          image: inventory-bmc-app
+          tags: dev
+          dockerfile: Dockerfile.inventory
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+  deploy-discovery:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v3
+
+      - name: Build and push discovery-bmc-app
+        uses: mr-smithers-excellent/docker-build-push@v6
+        with:
+          image: discovery-bmc-app
+          tags: dev
+          dockerfile: Dockerfile.discovery
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+  deploy-led:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v3
+
+      - name: Build and push led-bmc-app
+        uses: mr-smithers-excellent/docker-build-push@v6
+        with:
+          image: led-bmc-app
+          tags: dev
+          dockerfile: Dockerfile.led
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+  deploy-reset:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v3
+
+      - name: Build and push reset-bmc-app
+        uses: mr-smithers-excellent/docker-build-push@v6
+        with:
+          image: reset-bmc-app
+          tags: dev
+          dockerfile: Dockerfile.reset
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
