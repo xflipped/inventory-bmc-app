@@ -1,103 +1,86 @@
-name: BMC apps CI
+name: Deploy
 
 on:
   pull_request:
     branches: ["dev"]
-    types: [opened, synchronize, reopened, closed]
+    types: [closed]
+
 permissions:
-  packages: write
   contents: read
+  packages: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  REGISTRY: ghcr.io
 
 jobs:
-
-  build:
-    if: github.event.pull_request.merged == false
-    runs-on: ubuntu-latest
-    steps:
-    # Checkout the repo
-    - name: Checkout the repository
-      uses: actions/checkout@v3
-
-    # Set up Go environment
-    - name: Set up Go
-      uses: actions/setup-go@v3
-      with:
-        go-version: 1.19
-        cache: true
-    
-    # Build and examine Go source code
-    - name: Build
-      run: go build -v ./...
-
-    - name: Test
-      run: go test -v ./...
-
-    - name: Vet
-      run: go vet -v ./...
-
-  golangci:
-    if: github.event.pull_request.merged == false
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout the repository
-        uses: actions/checkout@v3
-
-      - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v3
-        with:
-          version: latest
-          # TODO:
-          # config: golangci.yml
-          args: --timeout=5m -v
- 
-  deploy:
+  deploy-inventory:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v3
 
-      # Build and push images to private repository
       - name: Build and push inventory-bmc-app
         uses: mr-smithers-excellent/docker-build-push@v6
         with:
           image: inventory-bmc-app
           tags: dev
-          registry: ghcr.io
-          githubOrg: ${{ github.repository_owner }}
           dockerfile: Dockerfile.inventory
+          registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+  deploy-discovery:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v3
 
       - name: Build and push discovery-bmc-app
         uses: mr-smithers-excellent/docker-build-push@v6
         with:
           image: discovery-bmc-app
           tags: dev
-          registry: ghcr.io
-          githubOrg: ${{ github.repository_owner }}
           dockerfile: Dockerfile.discovery
+          registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+  deploy-led:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v3
 
       - name: Build and push led-bmc-app
         uses: mr-smithers-excellent/docker-build-push@v6
         with:
           image: led-bmc-app
           tags: dev
-          registry: ghcr.io
-          githubOrg: ${{ github.repository_owner }}
           dockerfile: Dockerfile.led
+          registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+  deploy-reset:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v3
 
       - name: Build and push reset-bmc-app
         uses: mr-smithers-excellent/docker-build-push@v6
         with:
           image: reset-bmc-app
           tags: dev
-          registry: ghcr.io
-          githubOrg: ${{ github.repository_owner }}
           dockerfile: Dockerfile.reset
+          registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
