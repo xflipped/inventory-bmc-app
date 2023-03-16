@@ -13,7 +13,7 @@ import (
 	"github.com/foliagecp/inventory-bmc-app/pkg/utils"
 )
 
-func Discovery(ctx context.Context, addr string) (err error) {
+func Discovery(ctx context.Context, executor executor.Executor, addr string) (err error) {
 	u, err := url.Parse(addr)
 	if err != nil {
 		return
@@ -31,12 +31,6 @@ func Discovery(ctx context.Context, addr string) (err error) {
 	if err != nil {
 		return
 	}
-
-	executor, err := executor.New()
-	if err != nil {
-		return
-	}
-	defer executor.Close()
 
 	return executor.ExecSync(ctx, functionContext)
 }
