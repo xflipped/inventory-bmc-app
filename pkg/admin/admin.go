@@ -3,6 +3,7 @@
 package admin
 
 import (
+	"git.fg-tech.ru/listware/go-core/pkg/executor"
 	discovery "github.com/foliagecp/inventory-bmc-app/pkg/discovery/cli"
 	inventory "github.com/foliagecp/inventory-bmc-app/pkg/inventory/cli"
 	led "github.com/foliagecp/inventory-bmc-app/pkg/led/cli"
@@ -37,8 +38,14 @@ func init() {
 				},
 			},
 			Action: func(ctx *cli.Context) (err error) {
+				executor, err := executor.New()
+				if err != nil {
+					return
+				}
+				defer executor.Close()
+
 				addr := ctx.String("addr")
-				return discovery.Discovery(ctx.Context, addr)
+				return discovery.Discovery(ctx.Context, executor, addr)
 			},
 		},
 
