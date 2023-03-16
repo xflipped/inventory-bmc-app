@@ -28,7 +28,7 @@ func createObjects(ctx context.Context) (err error) {
 		return
 	}
 
-	if err = createDiscoverFunctionObject(ctx); err != nil {
+	if err = createDiscoveryFunctionObject(ctx); err != nil {
 		return
 	}
 

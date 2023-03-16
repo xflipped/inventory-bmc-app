@@ -4,7 +4,6 @@ package agent
 
 import (
 	"context"
-	"strings"
 
 	"git.fg-tech.ru/listware/go-core/pkg/executor"
 	"git.fg-tech.ru/listware/go-core/pkg/module"
@@ -26,9 +25,9 @@ type Agent struct {
 }
 
 // Run agent
-func Run() (err error) {
+func Run(ctx context.Context) (err error) {
 	a := &Agent{}
-	a.ctx, a.cancel = context.WithCancel(context.Background())
+	a.ctx, a.cancel = context.WithCancel(ctx)
 
 	if a.executor, err = executor.New(); err != nil {
 		return
@@ -37,14 +36,10 @@ func Run() (err error) {
 	return a.run()
 }
 
-func appendPath(paths ...string) string {
-	return strings.Join(paths, ".")
-}
-
 func (a *Agent) run() (err error) {
 	defer a.executor.Close()
 
-	log.Infof("run system agent")
+	log.Infof("run inventory agent")
 
 	a.osSignalCtrl()
 
@@ -52,7 +47,7 @@ func (a *Agent) run() (err error) {
 
 	log.Infof("use port (%d)", a.m.Port())
 
-	if err = a.m.Bind(types.FunctionType, a.workerFunction); err != nil {
+	if err = a.m.Bind(types.InventoryFunctionType, a.inventoryFunction); err != nil {
 		return
 	}
 
@@ -63,10 +58,13 @@ func (a *Agent) run() (err error) {
 
 		if err = a.m.RegisterAndListen(ctx); err != nil {
 			log.Error(err)
-			return
 		}
 
 	}()
+
+	if err = a.entrypoint(); err != nil {
+		return
+	}
 
 	<-ctx.Done()
 

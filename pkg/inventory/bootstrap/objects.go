@@ -23,16 +23,16 @@ func createObjects(ctx context.Context) (err error) {
 		return
 	}
 
-	if err = createDiscoverFunctionObject(ctx); err != nil {
+	if err = createInventoryFunctionObject(ctx); err != nil {
 		return
 	}
 
 	return
 }
 
-func createRedFishMountpointObject(ctx context.Context) (err error) {
+func registerObject(ctx context.Context, objectPath string, message *pbcmdb.RegisterObjectMessage) (err error) {
 	// check if object exists
-	elements, err := qdsl.Qdsl(ctx, types.FunctionContainerPath)
+	elements, err := qdsl.Qdsl(ctx, objectPath)
 	if err != nil {
 		return
 	}
@@ -42,40 +42,31 @@ func createRedFishMountpointObject(ctx context.Context) (err error) {
 		return
 	}
 
+	registerObjects = append(registerObjects, message)
+	return
+}
+
+func createRedFishMountpointObject(ctx context.Context) (err error) {
 	message, err := system.RegisterObject(types.FunctionsPath, types.FunctionContainerID, types.FunctionContainerLink, RedfishFunctionContainer{}, false, true)
 	if err != nil {
 		return
 	}
-	registerObjects = append(registerObjects, message)
-
-	return
+	return registerObject(ctx, types.FunctionContainerPath, message)
 }
 
-func createDiscoverFunctionObject(ctx context.Context) (err error) {
-	// check if object exists
-	elements, err := qdsl.Qdsl(ctx, types.FunctionPath)
-	if err != nil {
-		return
-	}
-
-	// already exists
-	if len(elements) > 0 {
-		return
-	}
-
-	function := pbtypes.Function{
+func createInventoryFunctionObject(ctx context.Context) (err error) {
+	function := &pbtypes.Function{
 		FunctionType: &pbtypes.FunctionType{
 			Namespace: types.Namespace,
-			Type:      types.FunctionType,
+			Type:      types.InventoryFunctionType,
 		},
 		Description: types.Description,
+		Grounded:    false,
 	}
 
-	message, err := system.RegisterObject(types.FunctionContainerPath, types.FunctionID, types.FunctionLink, function, true, true)
+	message, err := system.RegisterObject(types.FunctionContainerPath, types.FunctionID, types.InventoryFunctionLink, function, false, true)
 	if err != nil {
 		return
 	}
-
-	registerObjects = append(registerObjects, message)
-	return
+	return registerObject(ctx, types.InventoryFunctionPath, message)
 }

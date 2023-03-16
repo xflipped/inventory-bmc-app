@@ -4,9 +4,10 @@ package device
 
 import (
 	"encoding/xml"
+	"fmt"
 	"io"
 	"net/http"
-	"strings"
+	"net/url"
 )
 
 type RedfishDevice struct {
@@ -14,10 +15,6 @@ type RedfishDevice struct {
 	Api         string      `json:"api,omitempty"`
 	Login       string      `json:"login,omitempty"`
 	Password    string      `json:"password,omitempty"`
-}
-
-func (s RedfishDevice) UUID() string {
-	return strings.TrimPrefix(s.Description.Device.UDN, "uuid:")
 }
 
 func GetDescription(url string) (d Description, err error) {
@@ -68,9 +65,9 @@ type Description struct {
 	} `xml:"device" json:"device,omitempty"`
 }
 
-func (d Description) ToDevice(api string) RedfishDevice {
+func (d Description) ToDevice(u *url.URL) RedfishDevice {
 	return RedfishDevice{
 		Description: d,
-		Api:         strings.Trim(api, "\""),
+		Api:         fmt.Sprintf("%s://%s", u.Scheme, u.Hostname()),
 	}
 }
