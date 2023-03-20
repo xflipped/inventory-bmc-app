@@ -1,5 +1,3 @@
-github.com/Danile71/gofish v0.13.7 h1:dafhU2yaWMy3ie5Js4BuPnnrxusS3ThVULhDziOFejk=
-github.com/Danile71/gofish v0.13.7/go.mod h1:BLDSFTp8pDlf/xDbLZa+F7f7eW0E/CHCboggsu8CznI=
 github.com/Shopify/sarama v1.38.1 h1:lqqPUPQZ7zPqYlWpTh+LQ9bhYNu2xJL6k1SJN4WVe2A=
 github.com/Shopify/sarama v1.38.1/go.mod h1:iwv9a67Ha8VNa+TifujYoWGxWnu2kNVAQdSdZ4X2o5g=
 github.com/Shopify/toxiproxy/v2 v2.5.0 h1:i4LPT+qrSlKNtQf5QliVjdP08GyAH8+BUIc9gT0eahc=
@@ -81,6 +79,10 @@ github.com/russross/blackfriday/v2 v2.1.0 h1:JIOH55/0cWyOuilr9/qlrm0BSXldqnqwMsf
 github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
 github.com/sirupsen/logrus v1.9.0 h1:trlNQbNUG3OdDrDil03MCb1H2o9nJ1x4/5LYw7byDE0=
 github.com/sirupsen/logrus v1.9.0/go.mod h1:naHLuLoDiP4jHNo9R0sCBMtWGeIprob74mVsIT4qYEQ=
+github.com/stmcginnis/gofish v0.13.0 h1:qq6q3yNt9vw7ZuJxiw87hq9+BdPLsuRQBwl+XoZSz60=
+github.com/stmcginnis/gofish v0.13.0/go.mod h1:BLDSFTp8pDlf/xDbLZa+F7f7eW0E/CHCboggsu8CznI=
+github.com/stmcginnis/gofish v0.13.1-0.20230318144536-4c03e5553c79 h1:w5w817n36d3/K2gmOh99wZiIjVWvOiHgDXkzaLf2BU4=
+github.com/stmcginnis/gofish v0.13.1-0.20230318144536-4c03e5553c79/go.mod h1:BLDSFTp8pDlf/xDbLZa+F7f7eW0E/CHCboggsu8CznI=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/objx v0.4.0/go.mod h1:YvHI0jy2hoMjB+UWwv71VJQ9isScKT/TqJzVSSt89Yw=
 github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81PSLYec5m4=

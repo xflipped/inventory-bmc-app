@@ -239,6 +239,14 @@ type RedfishLogEntry struct {
 	*redfish.LogEntry
 }
 
+type RedfishEventService struct {
+	*redfish.EventService
+}
+
+type RedfishEventDestination struct {
+	*redfish.EventDestination
+}
+
 func createType(ctx context.Context, pt *types.Type) (err error) {
 	query := fmt.Sprintf("%s.types.root", pt.Schema.Title)
 	elements, err := qdsl.Qdsl(ctx, query)
@@ -295,207 +303,207 @@ func createRedfishLedType(ctx context.Context) (err error) {
 	return createType(ctx, pt)
 }
 
-func createRedfishStatus(ctx context.Context) (err error) {
+func createRedfishStatusType(ctx context.Context) (err error) {
 	pt := types.ReflectType(&RedfishStatus{})
 	return createType(ctx, pt)
 }
 
-func createRedfishBoot(ctx context.Context) (err error) {
+func createRedfishBootType(ctx context.Context) (err error) {
 	pt := types.ReflectType(&RedfishBoot{})
 	return createType(ctx, pt)
 }
 
-func createRedfishBootOption(ctx context.Context) (err error) {
+func createRedfishBootOptionType(ctx context.Context) (err error) {
 	pt := types.ReflectType(&RedfishBootOption{})
 	return createType(ctx, pt)
 }
 
-func createRedfishSecureBoot(ctx context.Context) (err error) {
+func createRedfishSecureBootType(ctx context.Context) (err error) {
 	pt := types.ReflectType(&RedfishSecureBoot{})
 	return createType(ctx, pt)
 }
 
-func createRedfishPCIeDevice(ctx context.Context) (err error) {
+func createRedfishPCIeDeviceType(ctx context.Context) (err error) {
 	pt := types.ReflectType(&RedfishPcieDevice{})
 	return createType(ctx, pt)
 }
 
-func createRedfishPCIeFunction(ctx context.Context) (err error) {
+func createRedfishPCIeFunctionType(ctx context.Context) (err error) {
 	pt := types.ReflectType(&RedfishPcieFunction{})
 	return createType(ctx, pt)
 }
 
-func createRedfishPCIeInterface(ctx context.Context) (err error) {
+func createRedfishPCIeInterfaceType(ctx context.Context) (err error) {
 	pt := types.ReflectType(&RedfishPcieInterface{})
 	return createType(ctx, pt)
 }
 
-func createRedfishPowerState(ctx context.Context) (err error) {
+func createRedfishPowerStateType(ctx context.Context) (err error) {
 	pt := types.ReflectType(&RedfishPowerState{})
 	return createType(ctx, pt)
 }
 
-func createRedfishPowerRestorePolicy(ctx context.Context) (err error) {
+func createRedfishPowerRestorePolicyType(ctx context.Context) (err error) {
 	pt := types.ReflectType(&RedfishPowerRestorePolicy{})
 	return createType(ctx, pt)
 }
 
-func createRedfishProcessorSummary(ctx context.Context) (err error) {
+func createRedfishProcessorSummaryType(ctx context.Context) (err error) {
 	pt := types.ReflectType(&RedfishProcessorSummary{})
 	return createType(ctx, pt)
 }
 
-func createRedfishProcessor(ctx context.Context) (err error) {
+func createRedfishProcessorType(ctx context.Context) (err error) {
 	pt := types.ReflectType(&RedfishProcessor{})
 	return createType(ctx, pt)
 }
 
-func createRedfishMemorySummary(ctx context.Context) (err error) {
+func createRedfishMemorySummaryType(ctx context.Context) (err error) {
 	pt := types.ReflectType(&RedfishMemorySummary{})
 	return createType(ctx, pt)
 }
 
-func createRedfishMemory(ctx context.Context) (err error) {
+func createRedfishMemoryType(ctx context.Context) (err error) {
 	pt := types.ReflectType(&RedfishMemory{})
 	return createType(ctx, pt)
 }
 
-func createRedfishMemoryDomain(ctx context.Context) (err error) {
+func createRedfishMemoryDomainType(ctx context.Context) (err error) {
 	pt := types.ReflectType(&RedfishMemoryDomain{})
 	return createType(ctx, pt)
 }
 
-func createRedfishHostWatchdogTimer(ctx context.Context) (err error) {
+func createRedfishHostWatchdogTimerType(ctx context.Context) (err error) {
 	pt := types.ReflectType(&RedfishHostWatchdogTimer{})
 	return createType(ctx, pt)
 }
 
-func createRedfishSimpleStorage(ctx context.Context) (err error) {
+func createRedfishSimpleStorageType(ctx context.Context) (err error) {
 	pt := types.ReflectType(&RedfishSimpleStorage{})
 	return createType(ctx, pt)
 }
 
-func createRedfishStorage(ctx context.Context) (err error) {
+func createRedfishStorageType(ctx context.Context) (err error) {
 	pt := types.ReflectType(&RedfishStorage{})
 	return createType(ctx, pt)
 }
 
-func createRedfishStorageDevice(ctx context.Context) (err error) {
+func createRedfishStorageDeviceType(ctx context.Context) (err error) {
 	pt := types.ReflectType(&RedfishStorageDevice{})
 	return createType(ctx, pt)
 }
 
-func createRedfishDrive(ctx context.Context) (err error) {
+func createRedfishDriveType(ctx context.Context) (err error) {
 	pt := types.ReflectType(&RedfishDrive{})
 	return createType(ctx, pt)
 }
 
-func createRedfishVolume(ctx context.Context) (err error) {
+func createRedfishVolumeType(ctx context.Context) (err error) {
 	pt := types.ReflectType(&RedfishVolume{})
 	return createType(ctx, pt)
 }
 
-func createRedfishThermal(ctx context.Context) (err error) {
+func createRedfishThermalType(ctx context.Context) (err error) {
 	pt := types.ReflectType(&RedfishThermal{})
 	return createType(ctx, pt)
 }
 
-func createRedfishTemperature(ctx context.Context) (err error) {
+func createRedfishTemperatureType(ctx context.Context) (err error) {
 	pt := types.ReflectType(&RedfishTemperature{})
 	return createType(ctx, pt)
 }
 
-func createRedfishFan(ctx context.Context) (err error) {
+func createRedfishFanType(ctx context.Context) (err error) {
 	pt := types.ReflectType(&RedfishFan{})
 	return createType(ctx, pt)
 }
 
-func createRedfishPower(ctx context.Context) (err error) {
+func createRedfishPowerType(ctx context.Context) (err error) {
 	pt := types.ReflectType(&RedfishPower{})
 	return createType(ctx, pt)
 }
 
-func createRedfishPowerControl(ctx context.Context) (err error) {
+func createRedfishPowerControlType(ctx context.Context) (err error) {
 	pt := types.ReflectType(&RedfishPowerControl{})
 	return createType(ctx, pt)
 }
 
-func createRedfishPhysicalContext(ctx context.Context) (err error) {
+func createRedfishPhysicalContextType(ctx context.Context) (err error) {
 	pt := types.ReflectType(&RedfishPhysicalContext{})
 	return createType(ctx, pt)
 }
 
-func createRedfishPowerMetric(ctx context.Context) (err error) {
+func createRedfishPowerMetricType(ctx context.Context) (err error) {
 	pt := types.ReflectType(&RedfishPowerMetric{})
 	return createType(ctx, pt)
 }
 
-func createRedfishPowerLimit(ctx context.Context) (err error) {
+func createRedfishPowerLimitType(ctx context.Context) (err error) {
 	pt := types.ReflectType(&RedfishPowerLimit{})
 	return createType(ctx, pt)
 }
 
-func createRedfishPowerSupply(ctx context.Context) (err error) {
+func createRedfishPowerSupplyType(ctx context.Context) (err error) {
 	pt := types.ReflectType(&RedfishPowerSupply{})
 	return createType(ctx, pt)
 }
 
-func createRedfishVoltage(ctx context.Context) (err error) {
+func createRedfishVoltageType(ctx context.Context) (err error) {
 	pt := types.ReflectType(&RedfishVoltage{})
 	return createType(ctx, pt)
 }
 
-func createRedfishPhysicalSecurity(ctx context.Context) (err error) {
+func createRedfishPhysicalSecurityType(ctx context.Context) (err error) {
 	pt := types.ReflectType(&RedfishPhysicalSecurity{})
 	return createType(ctx, pt)
 }
 
-func createRedfishLocation(ctx context.Context) (err error) {
+func createRedfishLocationType(ctx context.Context) (err error) {
 	pt := types.ReflectType(&RedfishLocation{})
 	return createType(ctx, pt)
 }
 
-func createRedfishPartLocation(ctx context.Context) (err error) {
+func createRedfishPartLocationType(ctx context.Context) (err error) {
 	pt := types.ReflectType(&RedfishPartLocation{})
 	return createType(ctx, pt)
 }
 
-func createRedfishPlacement(ctx context.Context) (err error) {
+func createRedfishPlacementType(ctx context.Context) (err error) {
 	pt := types.ReflectType(&RedfishPlacement{})
 	return createType(ctx, pt)
 }
 
-func createRedfishPostalAddress(ctx context.Context) (err error) {
+func createRedfishPostalAddressType(ctx context.Context) (err error) {
 	pt := types.ReflectType(&RedfishPostalAddress{})
 	return createType(ctx, pt)
 }
 
-func createRedfishSupportedResetTypes(ctx context.Context) (err error) {
+func createRedfishSupportedResetTypesType(ctx context.Context) (err error) {
 	pt := types.ReflectType(&RedfishSupportedResetTypes{})
 	return createType(ctx, pt)
 }
 
-func createRedfishCommandShell(ctx context.Context) (err error) {
+func createRedfishCommandShellType(ctx context.Context) (err error) {
 	pt := types.ReflectType(&RedfishCommandShell{})
 	return createType(ctx, pt)
 }
 
-func createRedfishNetworkInterface(ctx context.Context) (err error) {
+func createRedfishNetworkInterfaceType(ctx context.Context) (err error) {
 	pt := types.ReflectType(&RedfishNetworkInterface{})
 	return createType(ctx, pt)
 }
 
-func createRedfishEthernetInterface(ctx context.Context) (err error) {
+func createRedfishEthernetInterfaceType(ctx context.Context) (err error) {
 	pt := types.ReflectType(&RedfishEthernetInterface{})
 	return createType(ctx, pt)
 }
 
-func createRedfishHostInterface(ctx context.Context) (err error) {
+func createRedfishHostInterfaceType(ctx context.Context) (err error) {
 	pt := types.ReflectType(&RedfishHostInterface{})
 	return createType(ctx, pt)
 }
 
-func createRedfishHostInterfaceType(ctx context.Context) (err error) {
+func createRedfishHostInterfaceTypeType(ctx context.Context) (err error) {
 	pt := types.ReflectType(&RedfishHostInterfaceType{})
 	return createType(ctx, pt)
 }
@@ -525,6 +533,16 @@ func createRedfishLogEntryType(ctx context.Context) (err error) {
 	return createType(ctx, pt)
 }
 
+func createRedfishEventServiceType(ctx context.Context) (err error) {
+	pt := types.ReflectType(&RedfishEventService{})
+	return createType(ctx, pt)
+}
+
+func createRedfishEventDestinationType(ctx context.Context) (err error) {
+	pt := types.ReflectType(&RedfishEventDestination{})
+	return createType(ctx, pt)
+}
+
 func createTypes(ctx context.Context) (err error) {
 	if err = createRedfishServiceType(ctx); err != nil {
 		return
@@ -547,127 +565,127 @@ func createTypes(ctx context.Context) (err error) {
 	if err = createRedfishLedType(ctx); err != nil {
 		return
 	}
-	if err = createRedfishStatus(ctx); err != nil {
+	if err = createRedfishStatusType(ctx); err != nil {
 		return
 	}
-	if err = createRedfishBoot(ctx); err != nil {
+	if err = createRedfishBootType(ctx); err != nil {
 		return
 	}
-	if err = createRedfishBootOption(ctx); err != nil {
+	if err = createRedfishBootOptionType(ctx); err != nil {
 		return
 	}
-	if err = createRedfishSecureBoot(ctx); err != nil {
+	if err = createRedfishSecureBootType(ctx); err != nil {
 		return
 	}
-	if err = createRedfishPCIeDevice(ctx); err != nil {
+	if err = createRedfishPCIeDeviceType(ctx); err != nil {
 		return
 	}
-	if err = createRedfishPCIeFunction(ctx); err != nil {
+	if err = createRedfishPCIeFunctionType(ctx); err != nil {
 		return
 	}
-	if err = createRedfishPCIeInterface(ctx); err != nil {
+	if err = createRedfishPCIeInterfaceType(ctx); err != nil {
 		return
 	}
-	if err = createRedfishPowerState(ctx); err != nil {
+	if err = createRedfishPowerStateType(ctx); err != nil {
 		return
 	}
-	if err = createRedfishPowerRestorePolicy(ctx); err != nil {
+	if err = createRedfishPowerRestorePolicyType(ctx); err != nil {
 		return
 	}
-	if err = createRedfishProcessorSummary(ctx); err != nil {
+	if err = createRedfishProcessorSummaryType(ctx); err != nil {
 		return
 	}
-	if err = createRedfishProcessor(ctx); err != nil {
+	if err = createRedfishProcessorType(ctx); err != nil {
 		return
 	}
-	if err = createRedfishMemorySummary(ctx); err != nil {
+	if err = createRedfishMemorySummaryType(ctx); err != nil {
 		return
 	}
-	if err = createRedfishMemory(ctx); err != nil {
+	if err = createRedfishMemoryType(ctx); err != nil {
 		return
 	}
-	if err = createRedfishMemoryDomain(ctx); err != nil {
+	if err = createRedfishMemoryDomainType(ctx); err != nil {
 		return
 	}
-	if err = createRedfishHostWatchdogTimer(ctx); err != nil {
+	if err = createRedfishHostWatchdogTimerType(ctx); err != nil {
 		return
 	}
-	if err = createRedfishSimpleStorage(ctx); err != nil {
+	if err = createRedfishSimpleStorageType(ctx); err != nil {
 		return
 	}
-	if err = createRedfishStorage(ctx); err != nil {
+	if err = createRedfishStorageType(ctx); err != nil {
 		return
 	}
-	if err = createRedfishStorageDevice(ctx); err != nil {
+	if err = createRedfishStorageDeviceType(ctx); err != nil {
 		return
 	}
-	if err = createRedfishDrive(ctx); err != nil {
+	if err = createRedfishDriveType(ctx); err != nil {
 		return
 	}
-	if err = createRedfishVolume(ctx); err != nil {
+	if err = createRedfishVolumeType(ctx); err != nil {
 		return
 	}
-	if err = createRedfishThermal(ctx); err != nil {
+	if err = createRedfishThermalType(ctx); err != nil {
 		return
 	}
-	if err = createRedfishTemperature(ctx); err != nil {
+	if err = createRedfishTemperatureType(ctx); err != nil {
 		return
 	}
-	if err = createRedfishFan(ctx); err != nil {
+	if err = createRedfishFanType(ctx); err != nil {
 		return
 	}
-	if err = createRedfishPower(ctx); err != nil {
+	if err = createRedfishPowerType(ctx); err != nil {
 		return
 	}
-	if err = createRedfishPowerControl(ctx); err != nil {
+	if err = createRedfishPowerControlType(ctx); err != nil {
 		return
 	}
-	if err = createRedfishPhysicalContext(ctx); err != nil {
+	if err = createRedfishPhysicalContextType(ctx); err != nil {
 		return
 	}
-	if err = createRedfishPowerMetric(ctx); err != nil {
+	if err = createRedfishPowerMetricType(ctx); err != nil {
 		return
 	}
-	if err = createRedfishPowerLimit(ctx); err != nil {
+	if err = createRedfishPowerLimitType(ctx); err != nil {
 		return
 	}
-	if err = createRedfishPowerSupply(ctx); err != nil {
+	if err = createRedfishPowerSupplyType(ctx); err != nil {
 		return
 	}
-	if err = createRedfishVoltage(ctx); err != nil {
+	if err = createRedfishVoltageType(ctx); err != nil {
 		return
 	}
-	if err = createRedfishPhysicalSecurity(ctx); err != nil {
+	if err = createRedfishPhysicalSecurityType(ctx); err != nil {
 		return
 	}
-	if err = createRedfishLocation(ctx); err != nil {
+	if err = createRedfishLocationType(ctx); err != nil {
 		return
 	}
-	if err = createRedfishPartLocation(ctx); err != nil {
+	if err = createRedfishPartLocationType(ctx); err != nil {
 		return
 	}
-	if err = createRedfishPlacement(ctx); err != nil {
+	if err = createRedfishPlacementType(ctx); err != nil {
 		return
 	}
-	if err = createRedfishPostalAddress(ctx); err != nil {
+	if err = createRedfishPostalAddressType(ctx); err != nil {
 		return
 	}
-	if err = createRedfishSupportedResetTypes(ctx); err != nil {
+	if err = createRedfishSupportedResetTypesType(ctx); err != nil {
 		return
 	}
-	if err = createRedfishCommandShell(ctx); err != nil {
+	if err = createRedfishCommandShellType(ctx); err != nil {
 		return
 	}
-	if err = createRedfishNetworkInterface(ctx); err != nil {
+	if err = createRedfishNetworkInterfaceType(ctx); err != nil {
 		return
 	}
-	if err = createRedfishEthernetInterface(ctx); err != nil {
-		return
-	}
-	if err = createRedfishHostInterface(ctx); err != nil {
+	if err = createRedfishEthernetInterfaceType(ctx); err != nil {
 		return
 	}
 	if err = createRedfishHostInterfaceType(ctx); err != nil {
+		return
+	}
+	if err = createRedfishHostInterfaceTypeType(ctx); err != nil {
 		return
 	}
 	if err = createRedfishNetworkAdapterType(ctx); err != nil {
@@ -683,6 +701,12 @@ func createTypes(ctx context.Context) (err error) {
 		return
 	}
 	if err = createRedfishLogEntryType(ctx); err != nil {
+		return
+	}
+	if err = createRedfishEventServiceType(ctx); err != nil {
+		return
+	}
+	if err = createRedfishEventDestinationType(ctx); err != nil {
 		return
 	}
 	return
