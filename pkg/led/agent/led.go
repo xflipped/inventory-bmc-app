@@ -5,65 +5,51 @@ package agent
 import (
 	"encoding/json"
 
+	"git.fg-tech.ru/listware/go-core/pkg/client/system"
 	"git.fg-tech.ru/listware/go-core/pkg/module"
-	"github.com/foliagecp/inventory-bmc-app/pkg/discovery/agent/types/redfish/device"
-	"github.com/foliagecp/inventory-bmc-app/pkg/inventory/agent"
 	"github.com/foliagecp/inventory-bmc-app/pkg/utils"
-	"github.com/stmcginnis/gofish"
 	"github.com/stmcginnis/gofish/common"
+	"github.com/stmcginnis/gofish/redfish"
 )
 
-// TODO:
-// Possible update:
-// 1. execute on chassis object
-// 2. get redfish device object using cmdb finder.Links()
-// 3. get redfish client using api, login and password from redfish device object
-// 4. get chassis using client to fill etag value for PATCH requests
-// 5. update chassis with indicator led
-// 6. rerun inventory
+type LedPayload struct {
+	Led                  common.IndicatorLED
+	ConnectionParameters utils.ConnectionParameters
+}
 
-// ledFunction executes on '[device-uuid].redfish-devices.root'
+// ledFunction executes on 'chassis-[chassis-uuid].service.[device-uuid].redfish-devices.root'
 func (a *Agent) ledFunction(ctx module.Context) (err error) {
-	var redfishDevice device.RedfishDevice
-	if err = json.Unmarshal(ctx.CmdbContext(), &redfishDevice); err != nil {
+	chassis := &redfish.Chassis{}
+	if err = json.Unmarshal(ctx.CmdbContext(), chassis); err != nil {
 		return
 	}
-	var indicatorLED common.IndicatorLED
-	if err = json.Unmarshal(ctx.Message(), &indicatorLED); err != nil {
+	var payload LedPayload
+	if err = json.Unmarshal(ctx.Message(), &payload); err != nil {
 		return
 	}
 
-	client, err := utils.ConnectToRedfish(ctx, redfishDevice)
+	client, err := utils.Connect(ctx, payload.ConnectionParameters)
 	if err != nil {
 		return err
 	}
 	defer client.Logout()
 
-	if err = a.updateChassisIndicatorLED(client.Service, indicatorLED); err != nil {
+	chassis, err = redfish.GetChassis(client, chassis.ODataID)
+	if err != nil {
+		return
+	}
+	chassis.IndicatorLED = payload.Led
+	if err = chassis.Update(); err != nil {
 		return
 	}
 
-	// rerun inventory
-	return executeInventory(ctx)
+	// TODO: rerun inventory on computer system?
+	// rerun inventory on chassis object
+	return a.asyncUpdateObject(ctx, chassis)
 }
 
-func (a *Agent) updateChassisIndicatorLED(service *gofish.Service, indicatorLED common.IndicatorLED) (err error) {
-	chasseez, err := service.Chassis()
-	if err != nil {
-		return err
-	}
-
-	for _, chassee := range chasseez {
-		chassee.IndicatorLED = indicatorLED
-		if err = chassee.Update(); err != nil {
-			return
-		}
-	}
-	return nil
-}
-
-func executeInventory(ctx module.Context) (err error) {
-	functionContext, err := agent.PrepareInventoryFunc(ctx.Self().Id)
+func (a *Agent) asyncUpdateObject(ctx module.Context, payload any) (err error) {
+	functionContext, err := system.UpdateObject(ctx.Self().Id, payload)
 	if err != nil {
 		return
 	}

@@ -15,7 +15,7 @@ import (
 
 func createOrUpdateFunctionLink(ctx context.Context, fromQuery, toQuery, name string) (functionContext *pbtypes.FunctionContext, err error) {
 	route := &pbtypes.FunctionRoute{
-		Url: "http://subscribe-bmc:31005/statefun",
+		Url: fmt.Sprintf("http://%s:31005/statefun", types.App),
 	}
 
 	query := fmt.Sprintf("%s.%s", name, fromQuery)
@@ -46,7 +46,7 @@ func (a *Agent) createOrUpdateFunctionLink(fromQuery, toQuery, name string) (err
 	return a.executor.ExecSync(a.ctx, functionContext)
 }
 
-func PrepareSubscribeFunc(id, destinationUrl string) (fc *pbtypes.FunctionContext, err error) {
+func PrepareSubscribeFunc(id string, subscribePayload SubscribePayload) (fc *pbtypes.FunctionContext, err error) {
 	fc = &pbtypes.FunctionContext{
 		Id: id,
 		FunctionType: &pbtypes.FunctionType{
@@ -55,6 +55,6 @@ func PrepareSubscribeFunc(id, destinationUrl string) (fc *pbtypes.FunctionContex
 		},
 	}
 
-	fc.Value, err = json.Marshal(destinationUrl)
+	fc.Value, err = json.Marshal(subscribePayload)
 	return
 }

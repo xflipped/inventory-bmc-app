@@ -75,6 +75,13 @@ const (
 )
 
 const (
+	RedfishDeviceKey       = "redfish-device"
+	RedfishChassisKey      = "redfish-chassis"
+	RedfishSystemKey       = "redfish-system"
+	RedfishEventServiceKey = "redfish-event-service"
+)
+
+const (
 	FunctionContainerLink = "inventory-bmc"
 	InventoryFunctionLink = "inventory"
 
@@ -91,7 +98,6 @@ const (
 	RedfishTypeLink                = "type"
 	RedfishThermalLink             = "thermal"
 	RedfishPowerLink               = "power"
-	RedfishDeviceKey               = "redfish-device"
 	RedfishPartLocationLink        = "part-location"
 	RedfishPowerRestorePolicyLink  = "power-restore-policy"
 	RedfishProcessorSummaryLink    = "processor-summary"

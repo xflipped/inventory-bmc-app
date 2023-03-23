@@ -7,17 +7,16 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/foliagecp/inventory-bmc-app/pkg/utils"
-
 	"git.fg-tech.ru/listware/go-core/pkg/client/system"
 	"git.fg-tech.ru/listware/proto/sdk/pbtypes"
 	"github.com/foliagecp/inventory-bmc-app/pkg/discovery/agent/types"
 	"github.com/foliagecp/inventory-bmc-app/pkg/discovery/agent/types/redfish/device"
+	"github.com/foliagecp/inventory-bmc-app/pkg/utils"
 )
 
 func createOrUpdateFunctionLink(ctx context.Context, fromQuery, toQuery, name string) (functionContext *pbtypes.FunctionContext, err error) {
 	route := &pbtypes.FunctionRoute{
-		Url: "http://discovery-bmc:31002/statefun",
+		Url: fmt.Sprintf("http://%s:31002/statefun", types.App),
 	}
 
 	query := fmt.Sprintf("%s.%s", name, fromQuery)

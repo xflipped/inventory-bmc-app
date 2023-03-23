@@ -18,7 +18,6 @@ import (
 const (
 	systemMask                            = "system-%s.service.*[?@._id == '%s'?].objects.root"
 	biosMask                              = "bios.system-%s.service.*[?@._id == '%s'?].objects.root"
-	ledMask                               = "led.system-%s.service.*[?@._id == '%s'?].objects.root"
 	statusMask                            = "status.system-%s.service.*[?@._id == '%s'?].objects.root"
 	bootMask                              = "boot.system-%s.service.*[?@._id == '%s'?].objects.root"
 	bootOptionMask                        = "%s.boot.system-%s.service.*[?@._id == '%s'?].objects.root"
@@ -26,7 +25,6 @@ const (
 	subSystemMask                         = "%s.system-%s.service.*[?@._id == '%s'?].objects.root"
 	statusSubSystemMask                   = "status.%s.system-%s.service.*[?@._id == '%s'?].objects.root"
 	pcieInterfaceMask                     = "pcie-interface.%s.system-%s.service.*[?@._id == '%s'?].objects.root"
-	powerStateMask                        = "power-state.system-%s.service.*[?@._id == '%s'?].objects.root"
 	powerRestoreStateMask                 = "power-restore-policy.system-%s.service.*[?@._id == '%s'?].objects.root"
 	processorSummaryMask                  = "processor-summary.system-%s.service.*[?@._id == '%s'?].objects.root"
 	statusProcessorSummaryMask            = "status.processor-summary.system-%s.service.*[?@._id == '%s'?].objects.root"
@@ -65,13 +63,11 @@ func (a *Agent) createOrUpdateSystem(ctx module.Context, parentNode *documents.N
 
 	p := utils.NewParallel()
 	p.Exec(func() error { return a.createOrUpdateSystemBIOS(ctx, document, computerSystem) })
-	p.Exec(func() error { return a.createOrUpdateSystemLed(ctx, document, computerSystem) })
 	p.Exec(func() error { return a.createOrUpdateSystemStatus(ctx, document, computerSystem) })
 	p.Exec(func() error { return a.createOrUpdateSystemBoot(ctx, document, computerSystem) })
 	p.Exec(func() error { return a.createOrUpdateSystemSecureBoot(ctx, document, computerSystem) })
 	p.Exec(func() error { return a.createOrUpdatePCIeDevices(ctx, document, computerSystem) })
 	p.Exec(func() error { return a.createOrUpdatePCIeFunctions(ctx, document, computerSystem) })
-	p.Exec(func() error { return a.createOrUpdateSystemPowerState(ctx, document, computerSystem) })
 	p.Exec(func() error { return a.createOrUpdateSystemPowerRestorePolicy(ctx, document, computerSystem) })
 	p.Exec(func() error { return a.createOrUpdateProcessorSummary(ctx, document, computerSystem) })
 	p.Exec(func() error { return a.createOrUpdateProcessors(ctx, document, computerSystem) })
@@ -94,11 +90,6 @@ func (a *Agent) createOrUpdateSystemBIOS(ctx module.Context, parentNode *documen
 		return
 	}
 	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishBiosID, types.RedfishBiosLink, bios, biosMask, computerSystem.UUID, ctx.Self().Id)
-}
-
-func (a *Agent) createOrUpdateSystemLed(ctx module.Context, parentNode *documents.Node, computerSystem *redfish.ComputerSystem) (err error) {
-	led := &bootstrap.RedfishLed{Led: computerSystem.IndicatorLED}
-	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishLedID, types.RedfishLedLink, led, ledMask, computerSystem.UUID, ctx.Self().Id)
 }
 
 func (a *Agent) createOrUpdateSystemStatus(ctx module.Context, parentNode *documents.Node, computerSystem *redfish.ComputerSystem) (err error) {
@@ -212,11 +203,6 @@ func (a *Agent) createOrUpdatePCIeFunction(ctx module.Context, parentNode *docum
 func (a *Agent) createOrUpdatePCIeFunctionStatus(ctx module.Context, parentNode *documents.Node, computerSystem *redfish.ComputerSystem, functionLink string, function *redfish.PCIeFunction) (err error) {
 	status := &bootstrap.RedfishStatus{Status: function.Status}
 	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishStatusID, types.RedfishStatusLink, status, statusSubSystemMask, functionLink, computerSystem.UUID, ctx.Self().Id)
-}
-
-func (a *Agent) createOrUpdateSystemPowerState(ctx module.Context, parentNode *documents.Node, computerSystem *redfish.ComputerSystem) (err error) {
-	powerState := &bootstrap.RedfishPowerState{PowerState: computerSystem.PowerState}
-	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishPowerStateID, types.RedfishPowerStateLink, powerState, powerStateMask, computerSystem.UUID, ctx.Self().Id)
 }
 
 func (a *Agent) createOrUpdateSystemPowerRestorePolicy(ctx module.Context, parentNode *documents.Node, computerSystem *redfish.ComputerSystem) (err error) {
