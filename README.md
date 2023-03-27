@@ -10,6 +10,8 @@ docker build -t ghcr.io/foliagecp/inventory-bmc-app -f Dockerfile.inventory .
 docker build -t ghcr.io/foliagecp/led-bmc-app -f Dockerfile.led .
 
 docker build -t ghcr.io/foliagecp/reset-bmc-app -f Dockerfile.reset .
+
+docker build -t ghcr.io/foliagecp/subscribe-bmc-app -f Dockerfile.subscribe .
 ```
 
 ## Test
