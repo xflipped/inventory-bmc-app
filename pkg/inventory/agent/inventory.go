@@ -43,6 +43,7 @@ func (a *Agent) createOrUpdateService(ctx module.Context, service *gofish.Servic
 	p.Exec(func() error { return a.createOrUpdateSystems(ctx, service, document) })
 	p.Exec(func() error { return a.createOrUpdateChasseez(ctx, service, document) })
 	p.Exec(func() error { return a.createOrUpdateManagers(ctx, service, document) })
+	p.Exec(func() error { return a.createOrUpdateEventService(ctx, service, document) })
 	return p.Wait()
 }
 

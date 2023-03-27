@@ -68,6 +68,9 @@ const (
 	RedfishLogServiceID = "types/redfish-log-service"
 	RedfishLogEntryID   = "types/redfish-log-entry"
 
+	RedfishEventServiceID     = "types/redfish-event-service"
+	RedfishEventDestinationID = "types/redfish-event-destination"
+
 	RootID = "system/root"
 )
 

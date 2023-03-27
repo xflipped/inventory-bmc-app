@@ -3,11 +3,16 @@
 package admin
 
 import (
+	"fmt"
+	"net/url"
+	"strings"
+
 	"git.fg-tech.ru/listware/go-core/pkg/executor"
 	discovery "github.com/foliagecp/inventory-bmc-app/pkg/discovery/cli"
 	inventory "github.com/foliagecp/inventory-bmc-app/pkg/inventory/cli"
 	led "github.com/foliagecp/inventory-bmc-app/pkg/led/cli"
 	reset "github.com/foliagecp/inventory-bmc-app/pkg/reset/cli"
+	subscribe "github.com/foliagecp/inventory-bmc-app/pkg/subscribe/cli"
 	"github.com/foliagecp/inventory-bmc-app/pkg/upgrade"
 	"github.com/manifoldco/promptui"
 	"github.com/stmcginnis/gofish/common"
@@ -170,6 +175,48 @@ func init() {
 				}
 
 				return reset.Reset(ctx.Context, query, redfish.ResetType(resetType))
+			},
+		},
+
+		&cli.Command{
+			Name:        "subscribe",
+			Description: "Subscribe to BMC events",
+			Flags: []cli.Flag{
+				&cli.StringFlag{
+					Name:     "query",
+					Aliases:  []string{"q"},
+					Required: true,
+					Usage:    "qdsl query to redfish device",
+				},
+			},
+			Action: func(ctx *cli.Context) (err error) {
+				query := ctx.String("query")
+
+				validate := func(input string) (err error) {
+					u, err := url.ParseRequestURI(input)
+					if err != nil {
+						return err
+					}
+
+					if !strings.HasPrefix(u.Scheme, "http") {
+						return fmt.Errorf("destination should start with http")
+					}
+
+					return
+				}
+
+				prompt := promptui.Prompt{
+					Label:    "Subscription URL",
+					Validate: validate,
+				}
+
+				url, err := prompt.Run()
+
+				if err != nil {
+					return
+				}
+
+				return subscribe.Subscribe(ctx.Context, query, url)
 			},
 		},
 	}
