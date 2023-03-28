@@ -7,8 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/stmcginnis/gofish/common"
-
 	"git.fg-tech.ru/listware/go-core/pkg/client/system"
 	"git.fg-tech.ru/listware/proto/sdk/pbtypes"
 	"github.com/foliagecp/inventory-bmc-app/pkg/led/agent/types"
@@ -17,7 +15,7 @@ import (
 
 func createOrUpdateFunctionLink(ctx context.Context, fromQuery, toQuery, name string) (functionContext *pbtypes.FunctionContext, err error) {
 	route := &pbtypes.FunctionRoute{
-		Url: "http://led-bmc:31003/statefun",
+		Url: fmt.Sprintf("http://%s:31003/statefun", types.App),
 	}
 
 	query := fmt.Sprintf("%s.%s", name, fromQuery)
@@ -48,7 +46,7 @@ func (a *Agent) createOrUpdateFunctionLink(fromQuery, toQuery, name string) (err
 	return a.executor.ExecSync(a.ctx, functionContext)
 }
 
-func PrepareLedFunc(id string, indicatorLED common.IndicatorLED) (fc *pbtypes.FunctionContext, err error) {
+func PrepareLedFunc(id string, ledPayload LedPayload) (fc *pbtypes.FunctionContext, err error) {
 	fc = &pbtypes.FunctionContext{
 		Id: id,
 		FunctionType: &pbtypes.FunctionType{
@@ -57,6 +55,6 @@ func PrepareLedFunc(id string, indicatorLED common.IndicatorLED) (fc *pbtypes.Fu
 		},
 	}
 
-	fc.Value, err = json.Marshal(indicatorLED)
+	fc.Value, err = json.Marshal(ledPayload)
 	return
 }

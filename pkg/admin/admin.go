@@ -10,10 +10,14 @@ import (
 	"git.fg-tech.ru/listware/go-core/pkg/executor"
 	discovery "github.com/foliagecp/inventory-bmc-app/pkg/discovery/cli"
 	inventory "github.com/foliagecp/inventory-bmc-app/pkg/inventory/cli"
+	ledAgent "github.com/foliagecp/inventory-bmc-app/pkg/led/agent"
 	led "github.com/foliagecp/inventory-bmc-app/pkg/led/cli"
+	resetAgent "github.com/foliagecp/inventory-bmc-app/pkg/reset/agent"
 	reset "github.com/foliagecp/inventory-bmc-app/pkg/reset/cli"
+	subscribeAgent "github.com/foliagecp/inventory-bmc-app/pkg/subscribe/agent"
 	subscribe "github.com/foliagecp/inventory-bmc-app/pkg/subscribe/cli"
 	"github.com/foliagecp/inventory-bmc-app/pkg/upgrade"
+	"github.com/foliagecp/inventory-bmc-app/pkg/utils"
 	"github.com/manifoldco/promptui"
 	"github.com/stmcginnis/gofish/common"
 	"github.com/stmcginnis/gofish/redfish"
@@ -134,21 +138,54 @@ func init() {
 					Name:     "query",
 					Aliases:  []string{"q"},
 					Required: true,
-					Usage:    "qdsl query to redfish device",
+					Usage:    "qdsl query to chassis",
+				},
+				&cli.StringFlag{
+					Name:     "endpoint",
+					Aliases:  []string{"e"},
+					Required: true,
+					Usage:    "BMC URL",
+				},
+				&cli.StringFlag{
+					Name:     "login",
+					Aliases:  []string{"l"},
+					Required: true,
+					Usage:    "BMC login",
+					Value:    "root",
 				},
 			},
 			Action: func(ctx *cli.Context) (err error) {
 				query := ctx.String("query")
-				prompt := promptui.Select{
+				endpoint := ctx.String("endpoint")
+				login := ctx.String("login")
+
+				selectPrompt := promptui.Select{
 					Label: "Select IndicatorLED mode",
 					Items: []common.IndicatorLED{common.BlinkingIndicatorLED, common.OffIndicatorLED, common.LitIndicatorLED},
 				}
-				_, mode, err := prompt.Run()
+				_, mode, err := selectPrompt.Run()
 				if err != nil {
 					return
 				}
 
-				return led.Led(ctx.Context, query, common.IndicatorLED(mode))
+				prompt := promptui.Prompt{
+					Label: "Enter password",
+					Mask:  '*',
+				}
+				password, err := prompt.Run()
+				if err != nil {
+					return
+				}
+
+				ledPayload := ledAgent.LedPayload{
+					Led: common.IndicatorLED(mode),
+					ConnectionParameters: utils.ConnectionParameters{
+						Endpoint: endpoint,
+						Login:    login,
+						Password: password,
+					},
+				}
+				return led.Led(ctx.Context, query, ledPayload)
 			},
 		},
 
@@ -160,21 +197,55 @@ func init() {
 					Name:     "query",
 					Aliases:  []string{"q"},
 					Required: true,
-					Usage:    "qdsl query to redfish device",
+					Usage:    "qdsl query to computer system",
+				},
+				&cli.StringFlag{
+					Name:     "endpoint",
+					Aliases:  []string{"e"},
+					Required: true,
+					Usage:    "BMC URL",
+				},
+				&cli.StringFlag{
+					Name:     "login",
+					Aliases:  []string{"l"},
+					Required: true,
+					Usage:    "BMC login",
+					Value:    "root",
 				},
 			},
 			Action: func(ctx *cli.Context) (err error) {
 				query := ctx.String("query")
-				prompt := promptui.Select{
+				endpoint := ctx.String("endpoint")
+				login := ctx.String("login")
+
+				selectPrompt := promptui.Select{
 					Label: "Select reset type",
-					Items: []redfish.ResetType{redfish.OnResetType, redfish.GracefulShutdownResetType, redfish.ForceOffResetType, redfish.ForceRestartResetType},
+					Items: []redfish.ResetType{redfish.OnResetType, redfish.GracefulShutdownResetType, redfish.ForceOffResetType, redfish.ForceRestartResetType, redfish.PowerCycleResetType},
 				}
-				_, resetType, err := prompt.Run()
+				_, resetType, err := selectPrompt.Run()
 				if err != nil {
 					return
 				}
 
-				return reset.Reset(ctx.Context, query, redfish.ResetType(resetType))
+				prompt := promptui.Prompt{
+					Label: "Enter password",
+					Mask:  '*',
+				}
+				password, err := prompt.Run()
+				if err != nil {
+					return
+				}
+
+				resetPayload := resetAgent.ResetPayload{
+					ResetType: redfish.ResetType(resetType),
+					ConnectionParameters: utils.ConnectionParameters{
+						Endpoint: endpoint,
+						Login:    login,
+						Password: password,
+					},
+				}
+
+				return reset.Reset(ctx.Context, query, resetPayload)
 			},
 		},
 
@@ -186,12 +257,42 @@ func init() {
 					Name:     "query",
 					Aliases:  []string{"q"},
 					Required: true,
-					Usage:    "qdsl query to redfish device",
+					Usage:    "qdsl query to event service",
+				},
+				&cli.StringSliceFlag{
+					Name:     "registries",
+					Aliases:  []string{"rp"},
+					Required: false,
+					Usage:    "comma-separated list of registry prefixes to subscribe to (e.g. Base,Security)",
+				},
+				&cli.StringSliceFlag{
+					Name:     "resources",
+					Aliases:  []string{"rt"},
+					Required: false,
+					Usage:    "comma-separated list of resource types to subscribe to (e.g. TelemetryService,EventService)",
+				},
+				&cli.StringFlag{
+					Name:     "endpoint",
+					Aliases:  []string{"e"},
+					Required: true,
+					Usage:    "BMC URL",
+				},
+				&cli.StringFlag{
+					Name:     "login",
+					Aliases:  []string{"l"},
+					Required: true,
+					Usage:    "BMC login",
+					Value:    "root",
 				},
 			},
 			Action: func(ctx *cli.Context) (err error) {
 				query := ctx.String("query")
+				endpoint := ctx.String("endpoint")
+				login := ctx.String("login")
+				registryPrefixes := ctx.StringSlice("registries")
+				resourceTypes := ctx.StringSlice("resources")
 
+				// Destination URL
 				validate := func(input string) (err error) {
 					u, err := url.ParseRequestURI(input)
 					if err != nil {
@@ -204,19 +305,36 @@ func init() {
 
 					return
 				}
-
-				prompt := promptui.Prompt{
+				subscribePrompt := promptui.Prompt{
 					Label:    "Subscription URL",
 					Validate: validate,
 				}
-
-				url, err := prompt.Run()
-
+				url, err := subscribePrompt.Run()
 				if err != nil {
 					return
 				}
 
-				return subscribe.Subscribe(ctx.Context, query, url)
+				// Password
+				prompt := promptui.Prompt{
+					Label: "Enter password",
+					Mask:  '*',
+				}
+				password, err := prompt.Run()
+				if err != nil {
+					return
+				}
+
+				subscribePayload := subscribeAgent.SubscribePayload{
+					DestinationUrl:   url,
+					RegistryPrefixes: registryPrefixes,
+					ResourceTypes:    resourceTypes,
+					ConnectionParameters: utils.ConnectionParameters{
+						Endpoint: endpoint,
+						Login:    login,
+						Password: password,
+					},
+				}
+				return subscribe.Subscribe(ctx.Context, query, subscribePayload)
 			},
 		},
 	}

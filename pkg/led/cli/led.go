@@ -11,14 +11,13 @@ import (
 	"github.com/foliagecp/inventory-bmc-app/pkg/inventory/agent/types"
 	"github.com/foliagecp/inventory-bmc-app/pkg/led/agent"
 	"github.com/sirupsen/logrus"
-	"github.com/stmcginnis/gofish/common"
 )
 
 var (
 	log = logrus.New()
 )
 
-func Led(ctx context.Context, query string, indicatorLED common.IndicatorLED) (err error) {
+func Led(ctx context.Context, query string, ledPayload agent.LedPayload) (err error) {
 	executor, err := executor.New()
 	if err != nil {
 		return
@@ -35,12 +34,12 @@ func Led(ctx context.Context, query string, indicatorLED common.IndicatorLED) (e
 	for _, node := range nodes {
 		log.Infof("document: %s", node.Id)
 
-		if node.Type != types.RedfishDeviceKey {
+		if node.Type != types.RedfishChassisKey {
 			log.Infof("document: %s, skip...", node.Id)
 			continue
 		}
 
-		if err = executeLed(ctx, executor, node, indicatorLED); err != nil {
+		if err = executeLed(ctx, executor, node, ledPayload); err != nil {
 			return
 		}
 	}
@@ -48,8 +47,8 @@ func Led(ctx context.Context, query string, indicatorLED common.IndicatorLED) (e
 	return
 }
 
-func executeLed(ctx context.Context, executor executor.Executor, node *documents.Node, indicatorLED common.IndicatorLED) (err error) {
-	functionContext, err := agent.PrepareLedFunc(node.Id.String(), indicatorLED)
+func executeLed(ctx context.Context, executor executor.Executor, node *documents.Node, ledPayload agent.LedPayload) (err error) {
+	functionContext, err := agent.PrepareLedFunc(node.Id.String(), ledPayload)
 	if err != nil {
 		return
 	}

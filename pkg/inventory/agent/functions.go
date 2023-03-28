@@ -14,7 +14,7 @@ import (
 
 func createOrUpdateFunctionLink(ctx context.Context, fromQuery, toQuery, name string) (functionContext *pbtypes.FunctionContext, err error) {
 	route := &pbtypes.FunctionRoute{
-		Url: "http://inventory-bmc:31001/statefun",
+		Url: fmt.Sprintf("http://%s:31001/statefun", types.App),
 	}
 
 	query := fmt.Sprintf("%s.%s", name, fromQuery)

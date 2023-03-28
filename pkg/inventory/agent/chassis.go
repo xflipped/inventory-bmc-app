@@ -19,7 +19,6 @@ const (
 	// Chassis
 	chassisMask                      = "chassis-%s.service.*[?@._id == '%s'?].objects.root"
 	statusChassisMask                = "status.chassis-%s.service.*[?@._id == '%s'?].objects.root"
-	ledChassisMask                   = "led.chassis-%s.service.*[?@._id == '%s'?].objects.root"
 	locationChassisMask              = "location.chassis-%s.service.*[?@._id == '%s'?].objects.root"
 	partLocationLocationChassisMask  = "part-location.location.chassis-%s.service.*[?@._id == '%s'?].objects.root"
 	placementLocationChassisMask     = "placement.location.chassis-%s.service.*[?@._id == '%s'?].objects.root"
@@ -84,7 +83,6 @@ func (a *Agent) createOrUpdateChassee(ctx module.Context, parentNode *documents.
 	p.Exec(func() error { return a.createOrUpdateThermal(ctx, document, chassis) })
 	p.Exec(func() error { return a.createOrUpdatePower(ctx, document, chassis) })
 	p.Exec(func() error { return a.createOrUpdateNetworkAdapters(ctx, document, chassis) })
-	p.Exec(func() error { return a.createOrUpdateChassisLed(ctx, document, chassis) })
 	p.Exec(func() error { return a.createOrUpdateChassisStatus(ctx, document, chassis) })
 	p.Exec(func() error { return a.createOrUpdateChassisPowerState(ctx, document, chassis) })
 	p.Exec(func() error { return a.createOrUpdateChassisPhysicalSecurity(ctx, document, chassis) })
@@ -481,11 +479,6 @@ func (a *Agent) createOrUpdateNetworkAdapterPort(ctx module.Context, parentNode 
 func (a *Agent) createOrUpdateNetworkAdapterPortStatus(ctx module.Context, parentNode *documents.Node, chassis *redfish.Chassis, networkAdapterLink, networkPortLink string, networkPort *redfish.NetworkPort) (err error) {
 	status := &bootstrap.RedfishStatus{Status: networkPort.Status}
 	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishStatusID, types.RedfishStatusLink, status, statusSubSubChassisMask, networkPortLink, networkAdapterLink, chassis.UUID, ctx.Self().Id)
-}
-
-func (a *Agent) createOrUpdateChassisLed(ctx module.Context, parentNode *documents.Node, chassis *redfish.Chassis) (err error) {
-	led := &bootstrap.RedfishLed{Led: chassis.IndicatorLED}
-	return a.asyncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishLedID, types.RedfishLedLink, led, ledChassisMask, chassis.UUID, ctx.Self().Id)
 }
 
 func (a *Agent) createOrUpdateChassisStatus(ctx module.Context, parentNode *documents.Node, chassis *redfish.Chassis) (err error) {

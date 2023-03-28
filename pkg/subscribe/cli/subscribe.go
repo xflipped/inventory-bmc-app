@@ -17,7 +17,7 @@ var (
 	log = logrus.New()
 )
 
-func Subscribe(ctx context.Context, query, destinationUrl string) (err error) {
+func Subscribe(ctx context.Context, query string, subscribePayload agent.SubscribePayload) (err error) {
 	executor, err := executor.New()
 	if err != nil {
 		return
@@ -34,12 +34,12 @@ func Subscribe(ctx context.Context, query, destinationUrl string) (err error) {
 	for _, node := range nodes {
 		log.Infof("document: %s", node.Id)
 
-		if node.Type != types.RedfishDeviceKey {
+		if node.Type != types.RedfishEventServiceKey {
 			log.Infof("document: %s, skip...", node.Id)
 			continue
 		}
 
-		if err = executeSubscribe(ctx, executor, node, destinationUrl); err != nil {
+		if err = executeSubscribe(ctx, executor, node, subscribePayload); err != nil {
 			return
 		}
 	}
@@ -47,8 +47,8 @@ func Subscribe(ctx context.Context, query, destinationUrl string) (err error) {
 	return
 }
 
-func executeSubscribe(ctx context.Context, executor executor.Executor, node *documents.Node, destinationUrl string) (err error) {
-	functionContext, err := agent.PrepareSubscribeFunc(node.Id.String(), destinationUrl)
+func executeSubscribe(ctx context.Context, executor executor.Executor, node *documents.Node, subscribePayload agent.SubscribePayload) (err error) {
+	functionContext, err := agent.PrepareSubscribeFunc(node.Id.String(), subscribePayload)
 	if err != nil {
 		return
 	}

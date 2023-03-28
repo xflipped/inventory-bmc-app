@@ -79,8 +79,6 @@ github.com/russross/blackfriday/v2 v2.1.0 h1:JIOH55/0cWyOuilr9/qlrm0BSXldqnqwMsf
 github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
 github.com/sirupsen/logrus v1.9.0 h1:trlNQbNUG3OdDrDil03MCb1H2o9nJ1x4/5LYw7byDE0=
 github.com/sirupsen/logrus v1.9.0/go.mod h1:naHLuLoDiP4jHNo9R0sCBMtWGeIprob74mVsIT4qYEQ=
-github.com/stmcginnis/gofish v0.13.0 h1:qq6q3yNt9vw7ZuJxiw87hq9+BdPLsuRQBwl+XoZSz60=
-github.com/stmcginnis/gofish v0.13.0/go.mod h1:BLDSFTp8pDlf/xDbLZa+F7f7eW0E/CHCboggsu8CznI=
 github.com/stmcginnis/gofish v0.13.1-0.20230318144536-4c03e5553c79 h1:w5w817n36d3/K2gmOh99wZiIjVWvOiHgDXkzaLf2BU4=
 github.com/stmcginnis/gofish v0.13.1-0.20230318144536-4c03e5553c79/go.mod h1:BLDSFTp8pDlf/xDbLZa+F7f7eW0E/CHCboggsu8CznI=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=

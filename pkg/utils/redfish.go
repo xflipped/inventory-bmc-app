@@ -11,16 +11,32 @@ import (
 	"github.com/stmcginnis/gofish"
 )
 
+type ConnectionParameters struct {
+	Endpoint string
+	Login    string
+	Password string
+}
+
 func ConnectToRedfish(ctx context.Context, redfishDevice device.RedfishDevice) (client *gofish.APIClient, err error) {
 	u, err := url.Parse(redfishDevice.Api)
 	if err != nil {
 		return
 	}
 
-	config := gofish.ClientConfig{
+	connectionParameters := ConnectionParameters{
 		Endpoint: fmt.Sprintf("%s://%s", u.Scheme, u.Hostname()),
-		Username: redfishDevice.Login,
+		Login:    redfishDevice.Login,
 		Password: redfishDevice.Password,
+	}
+
+	return Connect(ctx, connectionParameters)
+}
+
+func Connect(ctx context.Context, connectionParameters ConnectionParameters) (client *gofish.APIClient, err error) {
+	config := gofish.ClientConfig{
+		Endpoint: connectionParameters.Endpoint,
+		Username: connectionParameters.Login,
+		Password: connectionParameters.Password,
 		Insecure: true,
 	}
 
@@ -29,5 +45,5 @@ func ConnectToRedfish(ctx context.Context, redfishDevice device.RedfishDevice) (
 		return
 	}
 
-	return client, nil
+	return
 }

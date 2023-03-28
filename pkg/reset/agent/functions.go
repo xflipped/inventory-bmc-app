@@ -7,8 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/stmcginnis/gofish/redfish"
-
 	"git.fg-tech.ru/listware/go-core/pkg/client/system"
 	"git.fg-tech.ru/listware/proto/sdk/pbtypes"
 	"github.com/foliagecp/inventory-bmc-app/pkg/reset/agent/types"
@@ -17,7 +15,7 @@ import (
 
 func createOrUpdateFunctionLink(ctx context.Context, fromQuery, toQuery, name string) (functionContext *pbtypes.FunctionContext, err error) {
 	route := &pbtypes.FunctionRoute{
-		Url: "http://reset-bmc:31004/statefun",
+		Url: fmt.Sprintf("http://%s:31004/statefun", types.App),
 	}
 
 	query := fmt.Sprintf("%s.%s", name, fromQuery)
@@ -48,7 +46,7 @@ func (a *Agent) createOrUpdateFunctionLink(fromQuery, toQuery, name string) (err
 	return a.executor.ExecSync(a.ctx, functionContext)
 }
 
-func PrepareResetFunc(id string, resetType redfish.ResetType) (fc *pbtypes.FunctionContext, err error) {
+func PrepareResetFunc(id string, resetPayload ResetPayload) (fc *pbtypes.FunctionContext, err error) {
 	fc = &pbtypes.FunctionContext{
 		Id: id,
 		FunctionType: &pbtypes.FunctionType{
@@ -57,6 +55,6 @@ func PrepareResetFunc(id string, resetType redfish.ResetType) (fc *pbtypes.Funct
 		},
 	}
 
-	fc.Value, err = json.Marshal(resetType)
+	fc.Value, err = json.Marshal(resetPayload)
 	return
 }
