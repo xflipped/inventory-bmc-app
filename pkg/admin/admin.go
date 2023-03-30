@@ -36,12 +36,6 @@ func init() {
 	CLI.Usage = "Admin redfish tool"
 	CLI.Version = version
 
-	executor, err := executor.New(executor.WithTimeout(time.Second * 60))
-	if err != nil {
-		return
-	}
-	defer executor.Close()
-
 	CLI.Commands = []*cli.Command{
 		&cli.Command{
 			Name:        "discovery",
@@ -56,6 +50,11 @@ func init() {
 			},
 			Action: func(ctx *cli.Context) (err error) {
 				addr := ctx.String("addr")
+				executor, err := executor.New(executor.WithTimeout(time.Second * 60))
+				if err != nil {
+					return
+				}
+				defer executor.Close()
 
 				return discovery.Discovery(ctx.Context, executor, addr)
 			},
@@ -86,6 +85,12 @@ func init() {
 				},
 			},
 			Action: func(ctx *cli.Context) (err error) {
+				executor, err := executor.New(executor.WithTimeout(time.Second * 60))
+				if err != nil {
+					return
+				}
+				defer executor.Close()
+
 				query := ctx.String("query")
 				endpoint := ctx.String("endpoint")
 				login := ctx.String("login")
@@ -175,6 +180,11 @@ func init() {
 				},
 			},
 			Action: func(ctx *cli.Context) (err error) {
+				executor, err := executor.New(executor.WithTimeout(time.Second * 60))
+				if err != nil {
+					return
+				}
+				defer executor.Close()
 				query := ctx.String("query")
 				endpoint := ctx.String("endpoint")
 				login := ctx.String("login")
@@ -234,6 +244,11 @@ func init() {
 				},
 			},
 			Action: func(ctx *cli.Context) (err error) {
+				executor, err := executor.New(executor.WithTimeout(time.Second * 60))
+				if err != nil {
+					return
+				}
+				defer executor.Close()
 				query := ctx.String("query")
 				endpoint := ctx.String("endpoint")
 				login := ctx.String("login")
@@ -306,6 +321,11 @@ func init() {
 				},
 			},
 			Action: func(ctx *cli.Context) (err error) {
+				executor, err := executor.New(executor.WithTimeout(time.Second * 60))
+				if err != nil {
+					return
+				}
+				defer executor.Close()
 				query := ctx.String("query")
 				endpoint := ctx.String("endpoint")
 				login := ctx.String("login")
