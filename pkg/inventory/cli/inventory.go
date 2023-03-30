@@ -42,7 +42,7 @@ func Inventory(ctx context.Context, executor executor.Executor, query string, in
 }
 
 func executeInventory(ctx context.Context, executor executor.Executor, node *documents.Node, inventoryPayload agent.InventoryPayload) (err error) {
-	functionContext, err := agent.PrepareInventoryFunc(node.Id.String())
+	functionContext, err := agent.PrepareInventoryFunc(node.Id.String(), inventoryPayload)
 	if err != nil {
 		return
 	}

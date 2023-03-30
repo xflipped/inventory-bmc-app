@@ -4,6 +4,7 @@ package agent
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"git.fg-tech.ru/listware/go-core/pkg/client/system"
@@ -45,7 +46,7 @@ func (a *Agent) createOrUpdateFunctionLink(fromQuery, toQuery, name string) (err
 	return a.executor.ExecSync(a.ctx, functionContext)
 }
 
-func PrepareInventoryFunc(id string) (fc *pbtypes.FunctionContext, err error) {
+func PrepareInventoryFunc(id string, inventoryPayload InventoryPayload) (fc *pbtypes.FunctionContext, err error) {
 	fc = &pbtypes.FunctionContext{
 		Id: id,
 		FunctionType: &pbtypes.FunctionType{
@@ -53,5 +54,7 @@ func PrepareInventoryFunc(id string) (fc *pbtypes.FunctionContext, err error) {
 			Type:      types.InventoryFunctionPath,
 		},
 	}
+	fc.Value, err = json.Marshal(inventoryPayload)
+
 	return
 }
