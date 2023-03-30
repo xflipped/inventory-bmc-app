@@ -17,13 +17,7 @@ var (
 	log = logrus.New()
 )
 
-func Reset(ctx context.Context, query string, resetPayload agent.ResetPayload) (err error) {
-	executor, err := executor.New()
-	if err != nil {
-		return
-	}
-	defer executor.Close()
-
+func Reset(ctx context.Context, executor executor.Executor, query string, resetPayload agent.ResetPayload) (err error) {
 	log.Infof("Query: %s", query)
 
 	nodes, err := qdsl.Qdsl(ctx, query, qdsl.WithId(), qdsl.WithType())

@@ -15,15 +15,24 @@ import (
 	"github.com/stmcginnis/gofish"
 )
 
+type InventoryPayload struct {
+	ConnectionParameters utils.ConnectionParameters
+}
+
 const serviceMask = "service.*[?@._id == '%s'?].objects.root"
 
 func (a *Agent) inventoryFunction(ctx module.Context) (err error) {
+	var payload InventoryPayload
+	if err = json.Unmarshal(ctx.Message(), &payload); err != nil {
+		return
+	}
+
 	var redfishDevice device.RedfishDevice
 	if err = json.Unmarshal(ctx.CmdbContext(), &redfishDevice); err != nil {
 		return
 	}
 
-	client, err := utils.ConnectToRedfish(ctx, redfishDevice)
+	client, err := utils.Connect(ctx, payload.ConnectionParameters)
 	if err != nil {
 		return err
 	}

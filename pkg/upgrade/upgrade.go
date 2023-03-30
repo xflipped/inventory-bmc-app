@@ -32,7 +32,7 @@ type Oem struct {
 	ImageType string
 }
 
-func Upgrade(ctx context.Context, query, file, ftype, target string) (err error) {
+func Upgrade(ctx context.Context, query, file, fileType, target string) (err error) {
 	nodes, err := qdsl.Qdsl(ctx, query, qdsl.WithId(), qdsl.WithType(), qdsl.WithObject())
 	if err != nil {
 		return
@@ -58,7 +58,7 @@ func Upgrade(ctx context.Context, query, file, ftype, target string) (err error)
 		go func() {
 			defer wg.Done()
 
-			if err := upgrade(ctx, device, file, ftype, target); err != nil {
+			if err := upgrade(ctx, device, file, fileType, target); err != nil {
 				log.Error(err)
 			}
 		}()
