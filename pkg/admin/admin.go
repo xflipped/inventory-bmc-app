@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
+	"time"
 
 	"git.fg-tech.ru/listware/go-core/pkg/executor"
 	discovery "github.com/foliagecp/inventory-bmc-app/pkg/discovery/cli"
+	inventoryAgent "github.com/foliagecp/inventory-bmc-app/pkg/inventory/agent"
 	inventory "github.com/foliagecp/inventory-bmc-app/pkg/inventory/cli"
 	ledAgent "github.com/foliagecp/inventory-bmc-app/pkg/led/agent"
 	led "github.com/foliagecp/inventory-bmc-app/pkg/led/cli"
@@ -34,6 +36,12 @@ func init() {
 	CLI.Usage = "Admin redfish tool"
 	CLI.Version = version
 
+	executor, err := executor.New(executor.WithTimeout(time.Second * 60))
+	if err != nil {
+		return
+	}
+	defer executor.Close()
+
 	CLI.Commands = []*cli.Command{
 		&cli.Command{
 			Name:        "discovery",
@@ -47,13 +55,8 @@ func init() {
 				},
 			},
 			Action: func(ctx *cli.Context) (err error) {
-				executor, err := executor.New()
-				if err != nil {
-					return
-				}
-				defer executor.Close()
-
 				addr := ctx.String("addr")
+
 				return discovery.Discovery(ctx.Context, executor, addr)
 			},
 		},
@@ -68,7 +71,12 @@ func init() {
 					Required: true,
 					Usage:    "qdsl query to redfish device",
 				},
-
+				&cli.StringFlag{
+					Name:     "endpoint",
+					Aliases:  []string{"e"},
+					Required: true,
+					Usage:    "BMC URL",
+				},
 				&cli.StringFlag{
 					Name:     "login",
 					Aliases:  []string{"l"},
@@ -79,16 +87,28 @@ func init() {
 			},
 			Action: func(ctx *cli.Context) (err error) {
 				query := ctx.String("query")
+				endpoint := ctx.String("endpoint")
 				login := ctx.String("login")
+
 				prompt := promptui.Prompt{
 					Label: "Enter password",
 					Mask:  '*',
 				}
+
 				password, err := prompt.Run()
 				if err != nil {
 					return
 				}
-				return inventory.Inventory(ctx.Context, query, login, password)
+
+				inventoryPayload := inventoryAgent.InventoryPayload{
+					ConnectionParameters: utils.ConnectionParameters{
+						Endpoint: endpoint,
+						Login:    login,
+						Password: password,
+					},
+				}
+
+				return inventory.Inventory(ctx.Context, executor, query, inventoryPayload)
 			},
 		},
 
@@ -124,9 +144,9 @@ func init() {
 			Action: func(ctx *cli.Context) (err error) {
 				query := ctx.String("query")
 				file := ctx.String("file")
-				ftype := ctx.String("type")
+				fileType := ctx.String("type")
 				target := ctx.String("target")
-				return upgrade.Upgrade(ctx.Context, query, file, ftype, target)
+				return upgrade.Upgrade(ctx.Context, query, file, fileType, target)
 			},
 		},
 
@@ -185,7 +205,7 @@ func init() {
 						Password: password,
 					},
 				}
-				return led.Led(ctx.Context, query, ledPayload)
+				return led.Led(ctx.Context, executor, query, ledPayload)
 			},
 		},
 
@@ -245,7 +265,7 @@ func init() {
 					},
 				}
 
-				return reset.Reset(ctx.Context, query, resetPayload)
+				return reset.Reset(ctx.Context, executor, query, resetPayload)
 			},
 		},
 
@@ -334,7 +354,7 @@ func init() {
 						Password: password,
 					},
 				}
-				return subscribe.Subscribe(ctx.Context, query, subscribePayload)
+				return subscribe.Subscribe(ctx.Context, executor, query, subscribePayload)
 			},
 		},
 	}

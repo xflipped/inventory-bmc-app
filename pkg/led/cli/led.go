@@ -17,13 +17,7 @@ var (
 	log = logrus.New()
 )
 
-func Led(ctx context.Context, query string, ledPayload agent.LedPayload) (err error) {
-	executor, err := executor.New()
-	if err != nil {
-		return
-	}
-	defer executor.Close()
-
+func Led(ctx context.Context, executor executor.Executor, query string, ledPayload agent.LedPayload) (err error) {
 	log.Infof("Query: %s", query)
 
 	nodes, err := qdsl.Qdsl(ctx, query, qdsl.WithId(), qdsl.WithType())
