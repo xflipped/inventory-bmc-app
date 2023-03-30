@@ -46,5 +46,5 @@ func executeLed(ctx context.Context, executor executor.Executor, node *documents
 	if err != nil {
 		return
 	}
-	return executor.ExecAsync(ctx, functionContext)
+	return executor.ExecSync(ctx, functionContext)
 }
