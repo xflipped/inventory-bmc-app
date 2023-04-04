@@ -21,6 +21,8 @@ import (
 
 // device - remove if re-discovery and uuid updated
 func (b *BmcApp) Discovery(ctx context.Context, request *pbdiscovery.Request) (device *pbredfish.Device, err error) {
+	const colName = "devices"
+
 	log.Infof("exec discovery: %s", request.GetUrl())
 
 	u, err := url.Parse(request.GetUrl())
@@ -53,26 +55,18 @@ func (b *BmcApp) Discovery(ctx context.Context, request *pbdiscovery.Request) (d
 		UUID: gofishService.UUID,
 	}
 
-	deviceFilter := bson.D{{"UUID", redfishDevice.UUID}}
-
-	deviceUpdate := bson.D{{"$set", redfishDevice}}
-
-	devicesCollection := b.database.Collection("devices")
-
-	singleResult := devicesCollection.FindOneAndUpdate(ctx, deviceFilter, deviceUpdate, options.FindOneAndUpdate().SetUpsert(true).SetReturnDocument(options.After))
-	if err = singleResult.Err(); err != nil {
+	filter := bson.D{{"UUID", redfishDevice.UUID}}
+	if err = b.FindOneAndReplace(ctx, colName, filter, &redfishDevice); err != nil {
 		return
 	}
 
-	if err = singleResult.Decode(&redfishDevice); err != nil {
-		return
-	}
-
-	return redfishDevice.ToPB()
+	return redfishDevice.ToProto()
 }
 
 func (b *BmcApp) ListDevices(ctx context.Context, empty *pbbmc.Empty) (devices *pbredfish.Devices, err error) {
-	devicesCollection := b.database.Collection("devices")
+	const colName = "devices"
+
+	devicesCollection := b.database.Collection(colName)
 
 	cur, err := devicesCollection.Find(ctx, bson.D{}, options.Find())
 	if err != nil {
@@ -89,7 +83,7 @@ func (b *BmcApp) ListDevices(ctx context.Context, empty *pbbmc.Empty) (devices *
 	}
 
 	for _, result := range results {
-		device, err := result.ToPB()
+		device, err := result.ToProto()
 		if err != nil {
 			return devices, err
 		}

@@ -14,7 +14,7 @@ import (
 
 // device - remove if re-discovery and uuid updated
 func (b *BmcApp) Inventory(ctx context.Context, request *pbinventory.Request) (response *pbinventory.Response, err error) {
-	const dbName = "devices"
+	const colName = "devices"
 
 	log.Infof("exec inventory: %s", request.GetId())
 
@@ -23,7 +23,7 @@ func (b *BmcApp) Inventory(ctx context.Context, request *pbinventory.Request) (r
 		return
 	}
 
-	collection := b.database.Collection(dbName)
+	collection := b.database.Collection(colName)
 
 	filter := bson.D{{"_id", id}}
 

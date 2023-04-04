@@ -13,7 +13,7 @@ type RedfishDevice struct {
 	UUID string             `bson:"UUID"`
 }
 
-func (d *RedfishDevice) ToPB() (device *pbredfish.Device, err error) {
+func (d *RedfishDevice) ToProto() (device *pbredfish.Device, err error) {
 	device = &pbredfish.Device{Id: d.Id.Hex(), Url: d.Url}
 	return
 }

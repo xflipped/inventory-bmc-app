@@ -13,7 +13,6 @@ import (
 )
 
 func main() {
-
 	ctx := context.Background()
 
 	conn, err := server.Client()
@@ -25,7 +24,7 @@ func main() {
 	client := pbbmc.NewBmcServiceClient(conn)
 
 	discoveryRequest := &pbdiscovery.Request{
-		Url: "https://ip/",
+		Url: "https://192.168.77.102/",
 	}
 
 	fmt.Println("discovery")
