@@ -1,0 +1,13 @@
+/*
+ *  Copyright 2023 NJWS Inc.
+ */
+
+syntax = "proto3";
+
+package inventory.bmc.app.sdk.pbdiscovery;
+
+option go_package = "github.com/foliagecp/inventory-bmc-app/sdk/pbdiscovery";
+
+message Request {
+    string url = 1;
+}

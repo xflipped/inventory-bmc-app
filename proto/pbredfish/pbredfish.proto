@@ -1,0 +1,18 @@
+/*
+ *  Copyright 2023 NJWS Inc.
+ */
+
+syntax = "proto3";
+
+package inventory.bmc.app.sdk.pbredfish;
+
+option go_package = "github.com/foliagecp/inventory-bmc-app/sdk/pbredfish";
+
+message Device {
+	string id = 1;
+    string url = 2;
+}
+
+message Devices {
+    repeated Device items = 1;
+}
