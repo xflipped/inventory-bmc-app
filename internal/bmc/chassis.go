@@ -36,7 +36,7 @@ func (b *BmcApp) inventoryChassis(ctx context.Context, redfishService db.Redfish
 		Chassis:   chassis,
 	}
 
-	filter := bson.D{{"_service_id", redfishChassis.ServiceId}}
+	filter := bson.D{{Key: "_service_id", Value: redfishChassis.ServiceId}}
 	if err = b.FindOneAndReplace(ctx, colName, filter, &redfishChassis); err != nil {
 		return
 	}

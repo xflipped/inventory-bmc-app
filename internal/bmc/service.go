@@ -21,7 +21,7 @@ func (b *BmcApp) inventoryService(ctx context.Context, redfishDevice db.RedfishD
 		Service:  service,
 	}
 
-	filter := bson.D{{"_device_id", redfishService.DeviceId}}
+	filter := bson.D{{Key: "_device_id", Value: redfishService.DeviceId}}
 	if err = b.FindOneAndReplace(ctx, colName, filter, &redfishService); err != nil {
 		return
 	}

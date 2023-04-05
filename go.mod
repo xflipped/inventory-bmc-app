@@ -8,7 +8,7 @@ replace git.fg-tech.ru/listware/cmdb => github.com/foliagecp/cmdb v0.1.5
 
 replace git.fg-tech.ru/listware/go-core => github.com/foliagecp/go-core v0.1.6
 
-replace github.com/stmcginnis/gofish => github.com/Danile71/gofish v0.13.4-0.20230404103108-b33736b90757
+// replace github.com/stmcginnis/gofish => github.com/Danile71/gofish v0.13.4-0.20230404103108-b33736b90757
 
 require (
 	git.fg-tech.ru/listware/cmdb v0.1.5
@@ -18,7 +18,7 @@ require (
 	github.com/koron/go-ssdp v0.0.3
 	github.com/manifoldco/promptui v0.9.0
 	github.com/sirupsen/logrus v1.9.0
-	github.com/stmcginnis/gofish v0.14.0
+	github.com/stmcginnis/gofish v0.14.1-0.20230404133511-f48993cacd3d
 	github.com/urfave/cli/v2 v2.24.3
 	go.mongodb.org/mongo-driver v1.11.3
 	go.uber.org/goleak v1.2.0
