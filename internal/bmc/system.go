@@ -471,101 +471,101 @@ func (b *BmcApp) inventoryNetworkInterface(ctx context.Context, redfishSystem db
 	}
 
 	p := utils.NewParallel()
-	p.Exec(func() error { return b.inventoryNetworkAdapter(ctx, redfishNetworkInterface) })
-	p.Exec(func() error { return b.inventoryNetworkDeviceFunctions(ctx, redfishNetworkInterface) })
-	p.Exec(func() error { return b.inventoryNetworkPorts(ctx, redfishNetworkInterface) })
+	p.Exec(func() error { return b.inventoryNetworkInterfaceAdapter(ctx, redfishNetworkInterface) })
+	p.Exec(func() error { return b.inventoryNetworkInterfaceDeviceFunctions(ctx, redfishNetworkInterface) })
+	p.Exec(func() error { return b.inventoryNetworkInterfacePorts(ctx, redfishNetworkInterface) })
 	return p.Wait()
 }
 
-func (b *BmcApp) inventoryNetworkAdapter(ctx context.Context, redfishNetworkInterface db.RedfishNetworkInterface) (err error) {
-	log.Infof("exec inventoryNetworkAdapter")
+func (b *BmcApp) inventoryNetworkInterfaceAdapter(ctx context.Context, redfishNetworkInterface db.RedfishNetworkInterface) (err error) {
+	log.Infof("exec inventoryNetworkInterfaceAdapter")
 
-	const colName = "networkAdapters"
+	const colName = "networkInterfaceAdapters"
 
-	networkAdapter, err := redfishNetworkInterface.NetworkAdapter()
+	networkInterfaceAdapter, err := redfishNetworkInterface.NetworkAdapter()
 	if err != nil {
 		return
 	}
 
-	redfishNetworkAdapter := db.RedfishNetworkAdapter{
+	redfishNetworkInterfaceAdapter := db.RedfishNetworkInterfaceAdapter{
 		NetworkInterfaceId: redfishNetworkInterface.Id,
-		NetworkAdapter:     networkAdapter,
+		NetworkAdapter:     networkInterfaceAdapter,
 	}
 
-	filter := bson.D{{Key: "_network_interface_id", Value: redfishNetworkAdapter.NetworkInterfaceId}}
-	if err = b.FindOneAndReplace(ctx, colName, filter, &redfishNetworkAdapter); err != nil {
+	filter := bson.D{{Key: "_network_interface_id", Value: redfishNetworkInterfaceAdapter.NetworkInterfaceId}}
+	if err = b.FindOneAndReplace(ctx, colName, filter, &redfishNetworkInterfaceAdapter); err != nil {
 		return
 	}
 
 	return
 }
 
-func (b *BmcApp) inventoryNetworkDeviceFunctions(ctx context.Context, redfishNetworkInterface db.RedfishNetworkInterface) (err error) {
-	log.Infof("exec inventoryNetworkDeviceFunctions")
+func (b *BmcApp) inventoryNetworkInterfaceDeviceFunctions(ctx context.Context, redfishNetworkInterface db.RedfishNetworkInterface) (err error) {
+	log.Infof("exec inventoryNetworkInterfaceDeviceFunctions")
 
-	networkDeviceFunctions, err := redfishNetworkInterface.NetworkDeviceFunctions()
+	networkInterfaceDeviceFunctions, err := redfishNetworkInterface.NetworkDeviceFunctions()
 	if err != nil {
 		return
 	}
 
 	p := utils.NewParallel()
-	for _, networkDeviceFunction := range networkDeviceFunctions {
-		networkDeviceFunction := networkDeviceFunction
+	for _, networkInterfaceDeviceFunction := range networkInterfaceDeviceFunctions {
+		networkInterfaceDeviceFunction := networkInterfaceDeviceFunction
 		p.Exec(func() error {
-			return b.inventoryNetworkDeviceFunction(ctx, redfishNetworkInterface, networkDeviceFunction)
+			return b.inventoryNetworkInterfaceDeviceFunction(ctx, redfishNetworkInterface, networkInterfaceDeviceFunction)
 		})
 	}
 	return p.Wait()
 }
 
-func (b *BmcApp) inventoryNetworkDeviceFunction(ctx context.Context, redfishNetworkInterface db.RedfishNetworkInterface, networkDeviceFunction *redfish.NetworkDeviceFunction) (err error) {
-	log.Infof("exec inventoryNetworkDeviceFunction")
+func (b *BmcApp) inventoryNetworkInterfaceDeviceFunction(ctx context.Context, redfishNetworkInterface db.RedfishNetworkInterface, networkInterfaceDeviceFunction *redfish.NetworkDeviceFunction) (err error) {
+	log.Infof("exec inventoryNetworkInterfaceDeviceFunction")
 
-	const colName = "networkDeviceFunctions"
+	const colName = "networkInterfaceDeviceFunctions"
 
-	redfishNetworkDeviceFunction := db.RedfishNetworkDeviceFunction{
+	redfishNetworkInterfaceDeviceFunction := db.RedfishNetworkInterfaceDeviceFunction{
 		NetworkInterfaceId:    redfishNetworkInterface.Id,
-		NetworkDeviceFunction: networkDeviceFunction,
+		NetworkDeviceFunction: networkInterfaceDeviceFunction,
 	}
 
-	filter := bson.D{{Key: "_network_interface_id", Value: redfishNetworkDeviceFunction.NetworkInterfaceId}}
-	if err = b.FindOneAndReplace(ctx, colName, filter, &redfishNetworkDeviceFunction); err != nil {
+	filter := bson.D{{Key: "_network_interface_id", Value: redfishNetworkInterfaceDeviceFunction.NetworkInterfaceId}}
+	if err = b.FindOneAndReplace(ctx, colName, filter, &redfishNetworkInterfaceDeviceFunction); err != nil {
 		return
 	}
 
 	return
 }
 
-func (b *BmcApp) inventoryNetworkPorts(ctx context.Context, redfishNetworkInterface db.RedfishNetworkInterface) (err error) {
-	log.Infof("exec inventoryNetworkPorts")
+func (b *BmcApp) inventoryNetworkInterfacePorts(ctx context.Context, redfishNetworkInterface db.RedfishNetworkInterface) (err error) {
+	log.Infof("exec inventoryNetworkInterfacePorts")
 
-	networkPorts, err := redfishNetworkInterface.NetworkPorts()
+	networkInterfacePorts, err := redfishNetworkInterface.NetworkPorts()
 	if err != nil {
 		return
 	}
 
 	p := utils.NewParallel()
-	for _, networkPort := range networkPorts {
-		networkPort := networkPort
+	for _, networkInterfacePort := range networkInterfacePorts {
+		networkInterfacePort := networkInterfacePort
 		p.Exec(func() error {
-			return b.inventoryNetworkPort(ctx, redfishNetworkInterface, networkPort)
+			return b.inventoryNetworkInterfacePort(ctx, redfishNetworkInterface, networkInterfacePort)
 		})
 	}
 	return p.Wait()
 }
 
-func (b *BmcApp) inventoryNetworkPort(ctx context.Context, redfishNetworkInterface db.RedfishNetworkInterface, networkPort *redfish.NetworkPort) (err error) {
-	log.Infof("exec inventoryNetworkPort")
+func (b *BmcApp) inventoryNetworkInterfacePort(ctx context.Context, redfishNetworkInterface db.RedfishNetworkInterface, networkInterfacePort *redfish.NetworkPort) (err error) {
+	log.Infof("exec inventoryNetworkInterfacePort")
 
-	const colName = "networkPorts"
+	const colName = "networkInterfacePorts"
 
-	redfishNetworkPort := db.RedfishNetworkPort{
+	redfishNetworkInterfacePort := db.RedfishNetworkInterfacePort{
 		NetworkInterfaceId: redfishNetworkInterface.Id,
-		NetworkPort:        networkPort,
+		NetworkPort:        networkInterfacePort,
 	}
 
-	filter := bson.D{{Key: "_network_interface_id", Value: redfishNetworkPort.NetworkInterfaceId}}
-	if err = b.FindOneAndReplace(ctx, colName, filter, &redfishNetworkPort); err != nil {
+	filter := bson.D{{Key: "_network_interface_id", Value: redfishNetworkInterfacePort.NetworkInterfaceId}}
+	if err = b.FindOneAndReplace(ctx, colName, filter, &redfishNetworkInterfacePort); err != nil {
 		return
 	}
 
