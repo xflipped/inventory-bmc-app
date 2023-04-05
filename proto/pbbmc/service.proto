@@ -1,0 +1,22 @@
+/*
+ *  Copyright 2023 NJWS Inc.
+ */
+
+syntax = "proto3";
+
+package inventory.bmc.app.sdk.pbbmc;
+
+option go_package = "github.com/foliagecp/inventory-bmc-app/sdk/pbbmc";
+
+import "pbredfish/pbredfish.proto";
+import "pbdiscovery/pbdiscovery.proto";
+import "pbinventory/pbinventory.proto";
+
+message Empty {}
+
+service BmcService {
+	rpc Discovery(pbdiscovery.Request) returns (pbredfish.Device) {}
+	rpc ListDevices(Empty) returns (pbredfish.Devices) {}
+
+	rpc Inventory(pbinventory.Request) returns (pbinventory.Response) {}
+}

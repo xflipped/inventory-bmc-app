@@ -65,13 +65,13 @@ func (a *Agent) createOrUpdateChasseez(ctx module.Context, service *gofish.Servi
 	p := utils.NewParallel()
 	for _, chassee := range chasseez {
 		chassee := chassee
-		p.Exec(func() error { return a.createOrUpdateChassee(ctx, parentNode, chassee) })
+		p.Exec(func() error { return a.createOrUpdateChassis(ctx, parentNode, chassee) })
 	}
 	return p.Wait()
 }
 
 // TODO: check Chassis & RedfishDevice UUID, now they are the same
-func (a *Agent) createOrUpdateChassee(ctx module.Context, parentNode *documents.Node, chassis *redfish.Chassis) (err error) {
+func (a *Agent) createOrUpdateChassis(ctx module.Context, parentNode *documents.Node, chassis *redfish.Chassis) (err error) {
 	chassisLink := fmt.Sprintf("chassis-%s", chassis.UUID)
 
 	document, err := a.syncCreateOrUpdateChild(ctx, parentNode.Id.String(), types.RedfishChassisID, chassisLink, chassis, chassisMask, chassis.UUID, ctx.Self().Id)
