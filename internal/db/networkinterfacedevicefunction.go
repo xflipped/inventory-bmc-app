@@ -7,8 +7,8 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-type RedfishNetworkPort struct {
+type RedfishNetworkInterfaceDeviceFunction struct {
 	Id                 primitive.ObjectID `bson:"_id,omitempty"`
 	NetworkInterfaceId primitive.ObjectID `bson:"_network_interface_id,omitempty"`
-	*redfish.NetworkPort
+	*redfish.NetworkDeviceFunction
 }

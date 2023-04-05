@@ -30,7 +30,8 @@ func main() {
 
 	fmt.Println("discovery")
 
-	ctx2, _ := context.WithTimeout(ctx, time.Second*5) // nolint
+	ctx2, cancel := context.WithTimeout(ctx, time.Second*5)
+	defer cancel()
 
 	device, err := client.Discovery(ctx2, host)
 	if err != nil {
