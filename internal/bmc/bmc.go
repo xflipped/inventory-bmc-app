@@ -5,10 +5,9 @@ package bmc
 import (
 	"context"
 
-	"go.mongodb.org/mongo-driver/bson"
-
 	"github.com/foliagecp/inventory-bmc-app/sdk/pbbmc"
 	"github.com/sirupsen/logrus"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )

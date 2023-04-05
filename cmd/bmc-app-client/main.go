@@ -46,7 +46,7 @@ func main() {
 	}
 
 	for _, device := range devices.GetItems() {
-		fmt.Println(device.GetUrl())
+		fmt.Println(device)
 	}
 
 	fmt.Println("inventory")
@@ -54,7 +54,7 @@ func main() {
 	inventoryRequest := &pbinventory.Request{
 		Id:       device.GetId(),
 		Username: "admin",
-		Password: "admin",
+		Password: "P@ssw0rd",
 	}
 
 	response, err := client.Inventory(ctx, inventoryRequest)
