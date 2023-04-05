@@ -6,15 +6,13 @@ import (
 	"context"
 	"fmt"
 
-	"go.mongodb.org/mongo-driver/mongo"
-
-	"github.com/foliagecp/inventory-bmc-app/sdk/pbredfish"
-
 	"github.com/foliagecp/inventory-bmc-app/internal/db"
 	"github.com/foliagecp/inventory-bmc-app/sdk/pbinventory"
+	"github.com/foliagecp/inventory-bmc-app/sdk/pbredfish"
 	"github.com/stmcginnis/gofish"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // device - remove if re-discovery and uuid updated

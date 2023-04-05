@@ -6,19 +6,17 @@ import (
 	"context"
 
 	"github.com/foliagecp/inventory-bmc-app/internal/db"
-	"github.com/foliagecp/inventory-bmc-app/sdk/pbled"
+	"github.com/foliagecp/inventory-bmc-app/sdk/pbpower"
 	"github.com/foliagecp/inventory-bmc-app/sdk/pbredfish"
 	"github.com/stmcginnis/gofish"
-	"github.com/stmcginnis/gofish/common"
 	"github.com/stmcginnis/gofish/redfish"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// device - remove if re-discovery and uuid updated
-func (b *BmcApp) SwitchLed(ctx context.Context, request *pbled.Request) (device *pbredfish.Device, err error) {
-	log.Infof("exec switch led")
+func (b *BmcApp) SwitchPower(ctx context.Context, request *pbpower.Request) (device *pbredfish.Device, err error) {
+	log.Infof("exec switch power")
 
 	id, err := primitive.ObjectIDFromHex(request.GetId())
 	if err != nil {
@@ -34,16 +32,16 @@ func (b *BmcApp) SwitchLed(ctx context.Context, request *pbled.Request) (device 
 			},
 		}
 
-		ledProject = bson.D{
+		powerProject = bson.D{
 			{Key: "$project",
 				Value: bson.D{
-					{Key: "_id", Value: bson.D{{Key: "$first", Value: "$chassis._id"}}},
+					{Key: "_id", Value: bson.D{{Key: "$first", Value: "$system._id"}}},
 					{Key: "url", Value: 1},
-					{Key: "chassis", Value: bson.D{{Key: "$first", Value: "$chassis.chassis"}}},
+					{Key: "system", Value: bson.D{{Key: "$first", Value: "$system.computersystem"}}},
 				}},
 		}
 	)
-	cur, err := b.database.Collection(devicesColName).Aggregate(ctx, mongo.Pipeline{match, lookupService, lookupChasseez, ledProject})
+	cur, err := b.database.Collection(devicesColName).Aggregate(ctx, mongo.Pipeline{match, lookupService, lookupSystem, powerProject})
 	if err != nil {
 		return
 	}
@@ -51,9 +49,9 @@ func (b *BmcApp) SwitchLed(ctx context.Context, request *pbled.Request) (device 
 
 	var s = struct {
 		// chassis id
-		Id              primitive.ObjectID `bson:"_id,omitempty"`
-		Url             string             `bson:"url,omitempty"`
-		redfish.Chassis `bson:"chassis,omitempty"`
+		Id                     primitive.ObjectID `bson:"_id,omitempty"`
+		Url                    string             `bson:"url,omitempty"`
+		redfish.ComputerSystem `bson:"system,omitempty"`
 	}{}
 
 	if !cur.Next(ctx) {
@@ -78,25 +76,29 @@ func (b *BmcApp) SwitchLed(ctx context.Context, request *pbled.Request) (device 
 	}
 	defer redfishClient.Logout()
 
-	chassis, err := redfish.GetChassis(redfishClient, s.Chassis.ODataID)
+	system, err := redfish.GetComputerSystem(redfishClient, s.ComputerSystem.ODataID)
 	if err != nil {
 		return
 	}
-	chassis.IndicatorLED = common.IndicatorLED(request.GetState())
 
-	if err = chassis.Update(); err != nil {
+	if err = system.Reset(redfish.ResetType(request.GetType())); err != nil {
 		return
 	}
 
-	redfishChassis := db.RedfishChassis{
-		Chassis: chassis,
+	system, err = redfish.GetComputerSystem(redfishClient, s.ComputerSystem.ODataID)
+	if err != nil {
+		return
+	}
+
+	redfishSystem := db.RedfishSystem{
+		ComputerSystem: system,
 	}
 
 	update := bson.D{
-		{Key: "$set", Value: redfishChassis},
+		{Key: "$set", Value: redfishSystem},
 	}
 
-	_, err = b.database.Collection(chasseezColName).UpdateByID(ctx, s.Id, update)
+	_, err = b.database.Collection(systemsColName).UpdateByID(ctx, s.Id, update)
 	if err != nil {
 		return
 	}

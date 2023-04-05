@@ -4,6 +4,7 @@ package bmc
 
 import (
 	"context"
+	"os"
 
 	"github.com/foliagecp/inventory-bmc-app/sdk/pbbmc"
 	"github.com/sirupsen/logrus"
@@ -12,7 +13,19 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var log = logrus.New()
+const databaseName = "bmc-app"
+
+var (
+	mongoAddr = "mongodb://localhost:27017/"
+
+	log = logrus.New()
+)
+
+func init() {
+	if value, ok := os.LookupEnv("MONGO_ADDR"); ok {
+		mongoAddr = value
+	}
+}
 
 type BmcApp struct {
 	pbbmc.UnimplementedBmcServiceServer
@@ -25,7 +38,7 @@ type BmcApp struct {
 func New(ctx context.Context) (bmcApp *BmcApp, err error) {
 	bmcApp = &BmcApp{}
 
-	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017/")
+	clientOptions := options.Client().ApplyURI(mongoAddr)
 	if bmcApp.mongoClient, err = mongo.Connect(ctx, clientOptions); err != nil {
 		return
 	}
@@ -34,7 +47,7 @@ func New(ctx context.Context) (bmcApp *BmcApp, err error) {
 		return
 	}
 
-	bmcApp.database = bmcApp.mongoClient.Database("bmc-app")
+	bmcApp.database = bmcApp.mongoClient.Database(databaseName)
 
 	return
 }

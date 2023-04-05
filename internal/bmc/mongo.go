@@ -66,7 +66,7 @@ var (
 
 				{Key: "model", Value: bson.D{{Key: "$first", Value: "$manager.manager.model"}}},
 				{Key: "vendor", Value: bson.D{{Key: "$first", Value: "$service.service.vendor"}}},
-				{Key: "power_state", Value: bson.D{{Key: "$first", Value: "$manager.manager.powerstate"}}},
+				{Key: "power_state", Value: bson.D{{Key: "$first", Value: "$system.computersystem.powerstate"}}},
 				{Key: "health_status", Value: bson.D{{Key: "$first", Value: "$system.computersystem.status.health"}}},
 				{Key: "indicator_led", Value: bson.D{{Key: "$first", Value: "$chassis.chassis.indicatorled"}}},
 

@@ -5,6 +5,9 @@ package main
 import (
 	"context"
 	"fmt"
+	"time"
+
+	"github.com/stmcginnis/gofish/redfish"
 
 	"github.com/foliagecp/inventory-bmc-app/pkg/bmc"
 	"github.com/stmcginnis/gofish/common"
@@ -18,10 +21,13 @@ func main() {
 		fmt.Println(err)
 		return
 	}
+	defer client.Close()
 
 	fmt.Println("discovery")
 
-	device, err := client.Discovery(ctx, "https://192.168.77.102/")
+	ctx2, _ := context.WithTimeout(ctx, time.Second*5)
+
+	device, err := client.Discovery(ctx2, "https://192.168.77.102/")
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -60,4 +66,14 @@ func main() {
 	}
 
 	fmt.Println("led", device)
+
+	fmt.Println("power")
+
+	device, err = client.SwitchPower(ctx, device.GetId(), "admin", "P@ssw0rd", redfish.OnResetType)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	fmt.Println("power", device)
 }

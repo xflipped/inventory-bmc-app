@@ -3,16 +3,14 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"os"
 
-	"github.com/foliagecp/inventory-bmc-app/internal/server"
+	"github.com/foliagecp/inventory-bmc-app/internal/cli"
 )
 
 func main() {
-
-	if err := server.Run(context.Background()); err != nil {
+	if err := cli.CLI.Run(os.Args); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
