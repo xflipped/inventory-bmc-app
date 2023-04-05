@@ -5,18 +5,16 @@ package bmc
 import (
 	"context"
 
-	"github.com/foliagecp/inventory-bmc-app/sdk/pbpower"
-	"github.com/stmcginnis/gofish/redfish"
-
-	"google.golang.org/grpc"
-
 	"github.com/foliagecp/inventory-bmc-app/internal/server"
 	"github.com/foliagecp/inventory-bmc-app/sdk/pbbmc"
 	"github.com/foliagecp/inventory-bmc-app/sdk/pbdiscovery"
 	"github.com/foliagecp/inventory-bmc-app/sdk/pbinventory"
 	"github.com/foliagecp/inventory-bmc-app/sdk/pbled"
+	"github.com/foliagecp/inventory-bmc-app/sdk/pbpower"
 	"github.com/foliagecp/inventory-bmc-app/sdk/pbredfish"
 	"github.com/stmcginnis/gofish/common"
+	"github.com/stmcginnis/gofish/redfish"
+	"google.golang.org/grpc"
 )
 
 // export BMC_APP_ADDR=bmc-app

@@ -7,10 +7,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/stmcginnis/gofish/redfish"
-
 	"github.com/foliagecp/inventory-bmc-app/pkg/bmc"
 	"github.com/stmcginnis/gofish/common"
+	"github.com/stmcginnis/gofish/redfish"
+)
+
+const (
+	login    = "admin"
+	password = "P@ssw0rd"
 )
 
 func main() {
@@ -49,7 +53,7 @@ func main() {
 
 	fmt.Println("inventory")
 
-	device, err = client.Inventory(ctx, device.GetId(), "admin", "P@ssw0rd")
+	device, err = client.Inventory(ctx, device.GetId(), login, password)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -59,7 +63,7 @@ func main() {
 
 	fmt.Println("led")
 
-	device, err = client.SwitchLed(ctx, device.GetId(), "admin", "P@ssw0rd", common.BlinkingIndicatorLED)
+	device, err = client.SwitchLed(ctx, device.GetId(), login, password, common.BlinkingIndicatorLED)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -69,7 +73,7 @@ func main() {
 
 	fmt.Println("power")
 
-	device, err = client.SwitchPower(ctx, device.GetId(), "admin", "P@ssw0rd", redfish.OnResetType)
+	device, err = client.SwitchPower(ctx, device.GetId(), login, password, redfish.OnResetType)
 	if err != nil {
 		fmt.Println(err)
 		return

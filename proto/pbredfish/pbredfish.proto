@@ -19,10 +19,11 @@ message Device {
     string model = 7;
     string vendor = 8;
     string power_state = 9; 
-    string health_status = 10;
-    string indicator_led = 11;
-    string min_temp = 12;
-    string max_temp = 13;
+    string bmc_power_state = 10; 
+    string health_status = 11;
+    string indicator_led = 12;
+    string min_temp = 13;
+    string max_temp = 14;
 
 }
 
