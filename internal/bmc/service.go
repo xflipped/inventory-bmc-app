@@ -11,12 +11,12 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-func (b *BmcApp) inventoryService(ctx context.Context, redfishDevice db.RedfishDevice, service *gofish.Service) (redfishService db.RedfishService, err error) {
+func (b *BmcApp) inventoryService(ctx context.Context, redfishDevice db.RedfishDevice, service *gofish.Service) (err error) {
 	log.Infof("exec inventoryService")
 
 	const colName = "services"
 
-	redfishService = db.RedfishService{
+	redfishService := db.RedfishService{
 		DeviceId: redfishDevice.Id,
 		Service:  service,
 	}

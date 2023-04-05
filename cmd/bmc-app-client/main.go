@@ -6,32 +6,22 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/foliagecp/inventory-bmc-app/internal/server"
-	"github.com/foliagecp/inventory-bmc-app/sdk/pbbmc"
-	"github.com/foliagecp/inventory-bmc-app/sdk/pbdiscovery"
-	"github.com/foliagecp/inventory-bmc-app/sdk/pbinventory"
-	"github.com/foliagecp/inventory-bmc-app/sdk/pbled"
+	"github.com/foliagecp/inventory-bmc-app/pkg/bmc"
 	"github.com/stmcginnis/gofish/common"
 )
 
 func main() {
 	ctx := context.Background()
 
-	conn, err := server.Client()
+	client, err := bmc.New()
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	client := pbbmc.NewBmcServiceClient(conn)
-
-	discoveryRequest := &pbdiscovery.Request{
-		Url: "https://192.168.77.102/",
-	}
-
 	fmt.Println("discovery")
 
-	device, err := client.Discovery(ctx, discoveryRequest)
+	device, err := client.Discovery(ctx, "https://192.168.77.102/")
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -41,47 +31,33 @@ func main() {
 
 	fmt.Println("list")
 
-	devices, err := client.ListDevices(ctx, &pbbmc.Empty{})
+	devices, err := client.ListDevices(ctx)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	fmt.Println("listed", len(devices.GetItems()))
 
 	for _, device := range devices.GetItems() {
-		fmt.Println(device)
+		fmt.Println("list", device)
 	}
 
 	fmt.Println("inventory")
 
-	inventoryRequest := &pbinventory.Request{
-		Id:       device.GetId(),
-		Username: "admin",
-		Password: "P@ssw0rd",
-	}
-
-	_ = inventoryRequest
-	// response, err := client.Inventory(ctx, inventoryRequest)
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	return
-	// }
-
-	// fmt.Println(response.GetId())
-
-	fmt.Println("led")
-
-	ledRequest := pbled.Request{
-		Id:       device.GetId(),
-		Username: "admin",
-		Password: "P@ssw0rd",
-		State:    string(common.BlinkingIndicatorLED),
-	}
-	device, err = client.SwitchLed(ctx, &ledRequest)
+	device, err = client.Inventory(ctx, device.GetId(), "admin", "P@ssw0rd")
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	fmt.Println(device)
+	fmt.Println("inventory", device)
+
+	fmt.Println("led")
+
+	device, err = client.SwitchLed(ctx, device.GetId(), "admin", "P@ssw0rd", common.BlinkingIndicatorLED)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	fmt.Println("led", device)
 }

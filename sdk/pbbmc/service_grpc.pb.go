@@ -23,7 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type BmcServiceClient interface {
 	Discovery(ctx context.Context, in *pbdiscovery.Request, opts ...grpc.CallOption) (*pbredfish.Device, error)
-	Inventory(ctx context.Context, in *pbinventory.Request, opts ...grpc.CallOption) (*pbinventory.Response, error)
+	Inventory(ctx context.Context, in *pbinventory.Request, opts ...grpc.CallOption) (*pbredfish.Device, error)
 	ListDevices(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*pbredfish.Devices, error)
 	SwitchLed(ctx context.Context, in *pbled.Request, opts ...grpc.CallOption) (*pbredfish.Device, error)
 }
@@ -45,8 +45,8 @@ func (c *bmcServiceClient) Discovery(ctx context.Context, in *pbdiscovery.Reques
 	return out, nil
 }
 
-func (c *bmcServiceClient) Inventory(ctx context.Context, in *pbinventory.Request, opts ...grpc.CallOption) (*pbinventory.Response, error) {
-	out := new(pbinventory.Response)
+func (c *bmcServiceClient) Inventory(ctx context.Context, in *pbinventory.Request, opts ...grpc.CallOption) (*pbredfish.Device, error) {
+	out := new(pbredfish.Device)
 	err := c.cc.Invoke(ctx, "/inventory.bmc.app.sdk.pbbmc.BmcService/Inventory", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -77,7 +77,7 @@ func (c *bmcServiceClient) SwitchLed(ctx context.Context, in *pbled.Request, opt
 // for forward compatibility
 type BmcServiceServer interface {
 	Discovery(context.Context, *pbdiscovery.Request) (*pbredfish.Device, error)
-	Inventory(context.Context, *pbinventory.Request) (*pbinventory.Response, error)
+	Inventory(context.Context, *pbinventory.Request) (*pbredfish.Device, error)
 	ListDevices(context.Context, *Empty) (*pbredfish.Devices, error)
 	SwitchLed(context.Context, *pbled.Request) (*pbredfish.Device, error)
 	mustEmbedUnimplementedBmcServiceServer()
@@ -90,7 +90,7 @@ type UnimplementedBmcServiceServer struct {
 func (UnimplementedBmcServiceServer) Discovery(context.Context, *pbdiscovery.Request) (*pbredfish.Device, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Discovery not implemented")
 }
-func (UnimplementedBmcServiceServer) Inventory(context.Context, *pbinventory.Request) (*pbinventory.Response, error) {
+func (UnimplementedBmcServiceServer) Inventory(context.Context, *pbinventory.Request) (*pbredfish.Device, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Inventory not implemented")
 }
 func (UnimplementedBmcServiceServer) ListDevices(context.Context, *Empty) (*pbredfish.Devices, error) {

@@ -19,7 +19,7 @@ message Empty {}
 service BmcService {
 	rpc Discovery(pbdiscovery.Request) returns (pbredfish.Device) {}
 
-	rpc Inventory(pbinventory.Request) returns (pbinventory.Response) {}
+	rpc Inventory(pbinventory.Request) returns (pbredfish.Device) {}
 	
 	rpc ListDevices(Empty) returns (pbredfish.Devices) {}
 	

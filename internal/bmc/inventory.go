@@ -4,6 +4,11 @@ package bmc
 
 import (
 	"context"
+	"fmt"
+
+	"go.mongodb.org/mongo-driver/mongo"
+
+	"github.com/foliagecp/inventory-bmc-app/sdk/pbredfish"
 
 	"github.com/foliagecp/inventory-bmc-app/internal/db"
 	"github.com/foliagecp/inventory-bmc-app/sdk/pbinventory"
@@ -13,7 +18,7 @@ import (
 )
 
 // device - remove if re-discovery and uuid updated
-func (b *BmcApp) Inventory(ctx context.Context, request *pbinventory.Request) (response *pbinventory.Response, err error) {
+func (b *BmcApp) Inventory(ctx context.Context, request *pbinventory.Request) (device *pbredfish.Device, err error) {
 	const colName = "devices"
 
 	log.Infof("exec inventory: %s", request.GetId())
@@ -50,11 +55,26 @@ func (b *BmcApp) Inventory(ctx context.Context, request *pbinventory.Request) (r
 	}
 	defer redfishClient.Logout()
 
-	redfishService, err := b.inventoryService(ctx, redfishDevice, redfishClient.Service)
-	if err != nil {
+	if err = b.inventoryService(ctx, redfishDevice, redfishClient.Service); err != nil {
 		return
 	}
 
-	response = &pbinventory.Response{Id: redfishService.Id.Hex()}
+	cur, err := b.database.Collection(colName).Aggregate(ctx, mongo.Pipeline{lookupService, lookupSystem, lookupManager, lookupChasseez, project})
+	if err != nil {
+		return
+	}
+	defer cur.Close(ctx)
+
+	if !cur.Next(ctx) {
+		err = fmt.Errorf("device not found")
+		return
+	}
+
+	var result db.RedfishDevice
+	if err = cur.Decode(&result); err != nil {
+		return
+	}
+
+	device = result.ToProto()
 	return
 }
