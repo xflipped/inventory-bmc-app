@@ -4,7 +4,6 @@ package bmc
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/foliagecp/inventory-bmc-app/internal/db"
 	"github.com/foliagecp/inventory-bmc-app/sdk/pbled"
@@ -19,8 +18,6 @@ import (
 
 // device - remove if re-discovery and uuid updated
 func (b *BmcApp) SwitchLed(ctx context.Context, request *pbled.Request) (device *pbredfish.Device, err error) {
-	const colName = "devices"
-
 	log.Infof("exec switch led")
 
 	id, err := primitive.ObjectIDFromHex(request.GetId())
@@ -30,22 +27,23 @@ func (b *BmcApp) SwitchLed(ctx context.Context, request *pbled.Request) (device 
 
 	var (
 		match = bson.D{
-			{"$match",
-				bson.D{
-					{"_id", id},
+			{Key: "$match",
+				Value: bson.D{
+					{Key: "_id", Value: id},
 				},
 			},
 		}
 
 		ledProject = bson.D{
-			{"$project", bson.D{
-				{"_id", bson.D{{"$first", "$chassis._id"}}},
-				{"url", 1},
-				{"chassis", bson.D{{"$first", "$chassis.chassis"}}},
-			}},
+			{Key: "$project",
+				Value: bson.D{
+					{Key: "_id", Value: bson.D{{Key: "$first", Value: "$chassis._id"}}},
+					{Key: "url", Value: 1},
+					{Key: "chassis", Value: bson.D{{Key: "$first", Value: "$chassis.chassis"}}},
+				}},
 		}
 	)
-	cur, err := b.database.Collection(colName).Aggregate(ctx, mongo.Pipeline{match, lookupService, lookupChasseez, ledProject})
+	cur, err := b.database.Collection(devicesColName).Aggregate(ctx, mongo.Pipeline{match, lookupService, lookupChasseez, ledProject})
 	if err != nil {
 		return
 	}
@@ -59,7 +57,7 @@ func (b *BmcApp) SwitchLed(ctx context.Context, request *pbled.Request) (device 
 	}{}
 
 	if !cur.Next(ctx) {
-		err = fmt.Errorf("device not found")
+		err = errDeviceNotFound
 		return
 	}
 
@@ -95,27 +93,27 @@ func (b *BmcApp) SwitchLed(ctx context.Context, request *pbled.Request) (device 
 	}
 
 	update := bson.D{
-		{"$set", redfishChassis},
+		{Key: "$set", Value: redfishChassis},
 	}
 
-	_, err = b.database.Collection("chasseez").UpdateByID(ctx, s.Id, update)
+	_, err = b.database.Collection(chasseezColName).UpdateByID(ctx, s.Id, update)
 	if err != nil {
 		return
 	}
 
-	cur, err = b.database.Collection(colName).Aggregate(ctx, mongo.Pipeline{lookupService, lookupSystem, lookupManager, lookupChasseez, project})
+	deviceCur, err := b.database.Collection(devicesColName).Aggregate(ctx, mongo.Pipeline{lookupService, lookupSystem, lookupManager, lookupChasseez, project})
 	if err != nil {
 		return
 	}
-	defer cur.Close(ctx)
+	defer deviceCur.Close(ctx)
 
-	if !cur.Next(ctx) {
-		err = fmt.Errorf("device not found")
+	if !deviceCur.Next(ctx) {
+		err = errDeviceNotFound
 		return
 	}
 
 	var result db.RedfishDevice
-	if err = cur.Decode(&result); err != nil {
+	if err = deviceCur.Decode(&result); err != nil {
 		return
 	}
 

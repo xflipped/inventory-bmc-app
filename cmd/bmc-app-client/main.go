@@ -27,7 +27,7 @@ func main() {
 		return
 	}
 
-	fmt.Println("discovery ", device.GetUrl(), " id ", device.GetId())
+	fmt.Println("discovery", device)
 
 	fmt.Println("list")
 

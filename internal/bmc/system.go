@@ -11,6 +11,8 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
+const systemsColName = "systems"
+
 func (b *BmcApp) inventorySystems(ctx context.Context, redfishService db.RedfishService) (err error) {
 	log.Infof("exec inventorySystems")
 
@@ -30,15 +32,13 @@ func (b *BmcApp) inventorySystems(ctx context.Context, redfishService db.Redfish
 func (b *BmcApp) inventorySystem(ctx context.Context, redfishService db.RedfishService, computerSystem *redfish.ComputerSystem) (err error) {
 	log.Infof("exec inventorySystem")
 
-	const colName = "systems"
-
 	redfishSystem := db.RedfishSystem{
 		ServiceId:      redfishService.Id,
 		ComputerSystem: computerSystem,
 	}
 
 	filter := bson.D{{Key: "_service_id", Value: redfishSystem.ServiceId}}
-	if err = b.FindOneAndReplace(ctx, colName, filter, &redfishSystem); err != nil {
+	if err = b.FindOneAndReplace(ctx, systemsColName, filter, &redfishSystem); err != nil {
 		return
 	}
 
