@@ -13,8 +13,9 @@ import (
 )
 
 const (
+	host     = "https://192.168.77.102/"
 	login    = "admin"
-	password = "P@ssw0rd"
+	password = "admin"
 )
 
 func main() {
@@ -31,7 +32,7 @@ func main() {
 
 	ctx2, _ := context.WithTimeout(ctx, time.Second*5) // nolint
 
-	device, err := client.Discovery(ctx2, "https://192.168.77.102/")
+	device, err := client.Discovery(ctx2, host)
 	if err != nil {
 		fmt.Println(err)
 		return
