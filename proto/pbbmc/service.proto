@@ -12,11 +12,13 @@ import "pbredfish/pbredfish.proto";
 import "pbdiscovery/pbdiscovery.proto";
 import "pbinventory/pbinventory.proto";
 
+// add offset/limit
 message Empty {}
 
 service BmcService {
 	rpc Discovery(pbdiscovery.Request) returns (pbredfish.Device) {}
-	rpc ListDevices(Empty) returns (pbredfish.Devices) {}
 
 	rpc Inventory(pbinventory.Request) returns (pbinventory.Response) {}
+	
+	rpc ListDevices(Empty) returns (pbredfish.Devices) {}
 }

@@ -11,12 +11,10 @@ import (
 	"net/url"
 
 	"github.com/foliagecp/inventory-bmc-app/internal/db"
-	"github.com/foliagecp/inventory-bmc-app/sdk/pbbmc"
 	"github.com/foliagecp/inventory-bmc-app/sdk/pbdiscovery"
 	"github.com/foliagecp/inventory-bmc-app/sdk/pbredfish"
 	"github.com/stmcginnis/gofish"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 // device - remove if re-discovery and uuid updated
@@ -61,35 +59,4 @@ func (b *BmcApp) Discovery(ctx context.Context, request *pbdiscovery.Request) (d
 	}
 
 	return redfishDevice.ToProto()
-}
-
-func (b *BmcApp) ListDevices(ctx context.Context, empty *pbbmc.Empty) (devices *pbredfish.Devices, err error) {
-	const colName = "devices"
-
-	devicesCollection := b.database.Collection(colName)
-
-	cur, err := devicesCollection.Find(ctx, bson.D{}, options.Find())
-	if err != nil {
-		return
-	}
-	defer cur.Close(ctx)
-
-	devices = &pbredfish.Devices{}
-
-	var results []db.RedfishDevice
-
-	if err = cur.All(ctx, &results); err != nil {
-		return
-	}
-
-	for _, result := range results {
-		device, err := result.ToProto()
-		if err != nil {
-			return devices, err
-		}
-
-		devices.Items = append(devices.Items, device)
-	}
-
-	return
 }

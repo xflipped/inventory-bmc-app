@@ -10,7 +10,20 @@ option go_package = "github.com/foliagecp/inventory-bmc-app/sdk/pbredfish";
 
 message Device {
 	string id = 1;
+	
     string url = 2;
+    string UUID = 3;
+    string serial_number = 4;
+    string name = 5;
+    string mac_address = 6;
+    string model = 7;
+    string vendor = 8;
+    string power_state = 9; 
+    string health_status = 10;
+    string indicator_led = 11;
+    string min_temp = 12;
+    string max_temp = 13;
+
 }
 
 message Devices {

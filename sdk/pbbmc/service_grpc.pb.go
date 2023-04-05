@@ -22,8 +22,8 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type BmcServiceClient interface {
 	Discovery(ctx context.Context, in *pbdiscovery.Request, opts ...grpc.CallOption) (*pbredfish.Device, error)
-	ListDevices(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*pbredfish.Devices, error)
 	Inventory(ctx context.Context, in *pbinventory.Request, opts ...grpc.CallOption) (*pbinventory.Response, error)
+	ListDevices(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*pbredfish.Devices, error)
 }
 
 type bmcServiceClient struct {
@@ -43,18 +43,18 @@ func (c *bmcServiceClient) Discovery(ctx context.Context, in *pbdiscovery.Reques
 	return out, nil
 }
 
-func (c *bmcServiceClient) ListDevices(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*pbredfish.Devices, error) {
-	out := new(pbredfish.Devices)
-	err := c.cc.Invoke(ctx, "/inventory.bmc.app.sdk.pbbmc.BmcService/ListDevices", in, out, opts...)
+func (c *bmcServiceClient) Inventory(ctx context.Context, in *pbinventory.Request, opts ...grpc.CallOption) (*pbinventory.Response, error) {
+	out := new(pbinventory.Response)
+	err := c.cc.Invoke(ctx, "/inventory.bmc.app.sdk.pbbmc.BmcService/Inventory", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *bmcServiceClient) Inventory(ctx context.Context, in *pbinventory.Request, opts ...grpc.CallOption) (*pbinventory.Response, error) {
-	out := new(pbinventory.Response)
-	err := c.cc.Invoke(ctx, "/inventory.bmc.app.sdk.pbbmc.BmcService/Inventory", in, out, opts...)
+func (c *bmcServiceClient) ListDevices(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*pbredfish.Devices, error) {
+	out := new(pbredfish.Devices)
+	err := c.cc.Invoke(ctx, "/inventory.bmc.app.sdk.pbbmc.BmcService/ListDevices", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -66,8 +66,8 @@ func (c *bmcServiceClient) Inventory(ctx context.Context, in *pbinventory.Reques
 // for forward compatibility
 type BmcServiceServer interface {
 	Discovery(context.Context, *pbdiscovery.Request) (*pbredfish.Device, error)
-	ListDevices(context.Context, *Empty) (*pbredfish.Devices, error)
 	Inventory(context.Context, *pbinventory.Request) (*pbinventory.Response, error)
+	ListDevices(context.Context, *Empty) (*pbredfish.Devices, error)
 	mustEmbedUnimplementedBmcServiceServer()
 }
 
@@ -78,11 +78,11 @@ type UnimplementedBmcServiceServer struct {
 func (UnimplementedBmcServiceServer) Discovery(context.Context, *pbdiscovery.Request) (*pbredfish.Device, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Discovery not implemented")
 }
-func (UnimplementedBmcServiceServer) ListDevices(context.Context, *Empty) (*pbredfish.Devices, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListDevices not implemented")
-}
 func (UnimplementedBmcServiceServer) Inventory(context.Context, *pbinventory.Request) (*pbinventory.Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Inventory not implemented")
+}
+func (UnimplementedBmcServiceServer) ListDevices(context.Context, *Empty) (*pbredfish.Devices, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListDevices not implemented")
 }
 func (UnimplementedBmcServiceServer) mustEmbedUnimplementedBmcServiceServer() {}
 
@@ -115,24 +115,6 @@ func _BmcService_Discovery_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
-func _BmcService_ListDevices_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Empty)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BmcServiceServer).ListDevices(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/inventory.bmc.app.sdk.pbbmc.BmcService/ListDevices",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BmcServiceServer).ListDevices(ctx, req.(*Empty))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _BmcService_Inventory_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(pbinventory.Request)
 	if err := dec(in); err != nil {
@@ -151,6 +133,24 @@ func _BmcService_Inventory_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BmcService_ListDevices_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BmcServiceServer).ListDevices(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/inventory.bmc.app.sdk.pbbmc.BmcService/ListDevices",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BmcServiceServer).ListDevices(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BmcService_ServiceDesc is the grpc.ServiceDesc for BmcService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -163,12 +163,12 @@ var BmcService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _BmcService_Discovery_Handler,
 		},
 		{
-			MethodName: "ListDevices",
-			Handler:    _BmcService_ListDevices_Handler,
-		},
-		{
 			MethodName: "Inventory",
 			Handler:    _BmcService_Inventory_Handler,
+		},
+		{
+			MethodName: "ListDevices",
+			Handler:    _BmcService_ListDevices_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
