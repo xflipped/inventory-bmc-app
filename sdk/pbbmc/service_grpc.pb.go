@@ -6,6 +6,7 @@ import (
 	context "context"
 	pbdiscovery "github.com/foliagecp/inventory-bmc-app/sdk/pbdiscovery"
 	pbinventory "github.com/foliagecp/inventory-bmc-app/sdk/pbinventory"
+	pbled "github.com/foliagecp/inventory-bmc-app/sdk/pbled"
 	pbredfish "github.com/foliagecp/inventory-bmc-app/sdk/pbredfish"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
@@ -22,8 +23,9 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type BmcServiceClient interface {
 	Discovery(ctx context.Context, in *pbdiscovery.Request, opts ...grpc.CallOption) (*pbredfish.Device, error)
-	Inventory(ctx context.Context, in *pbinventory.Request, opts ...grpc.CallOption) (*pbinventory.Response, error)
+	Inventory(ctx context.Context, in *pbinventory.Request, opts ...grpc.CallOption) (*pbredfish.Device, error)
 	ListDevices(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*pbredfish.Devices, error)
+	SwitchLed(ctx context.Context, in *pbled.Request, opts ...grpc.CallOption) (*pbredfish.Device, error)
 }
 
 type bmcServiceClient struct {
@@ -43,8 +45,8 @@ func (c *bmcServiceClient) Discovery(ctx context.Context, in *pbdiscovery.Reques
 	return out, nil
 }
 
-func (c *bmcServiceClient) Inventory(ctx context.Context, in *pbinventory.Request, opts ...grpc.CallOption) (*pbinventory.Response, error) {
-	out := new(pbinventory.Response)
+func (c *bmcServiceClient) Inventory(ctx context.Context, in *pbinventory.Request, opts ...grpc.CallOption) (*pbredfish.Device, error) {
+	out := new(pbredfish.Device)
 	err := c.cc.Invoke(ctx, "/inventory.bmc.app.sdk.pbbmc.BmcService/Inventory", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -61,13 +63,23 @@ func (c *bmcServiceClient) ListDevices(ctx context.Context, in *Empty, opts ...g
 	return out, nil
 }
 
+func (c *bmcServiceClient) SwitchLed(ctx context.Context, in *pbled.Request, opts ...grpc.CallOption) (*pbredfish.Device, error) {
+	out := new(pbredfish.Device)
+	err := c.cc.Invoke(ctx, "/inventory.bmc.app.sdk.pbbmc.BmcService/SwitchLed", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BmcServiceServer is the server API for BmcService service.
 // All implementations must embed UnimplementedBmcServiceServer
 // for forward compatibility
 type BmcServiceServer interface {
 	Discovery(context.Context, *pbdiscovery.Request) (*pbredfish.Device, error)
-	Inventory(context.Context, *pbinventory.Request) (*pbinventory.Response, error)
+	Inventory(context.Context, *pbinventory.Request) (*pbredfish.Device, error)
 	ListDevices(context.Context, *Empty) (*pbredfish.Devices, error)
+	SwitchLed(context.Context, *pbled.Request) (*pbredfish.Device, error)
 	mustEmbedUnimplementedBmcServiceServer()
 }
 
@@ -78,11 +90,14 @@ type UnimplementedBmcServiceServer struct {
 func (UnimplementedBmcServiceServer) Discovery(context.Context, *pbdiscovery.Request) (*pbredfish.Device, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Discovery not implemented")
 }
-func (UnimplementedBmcServiceServer) Inventory(context.Context, *pbinventory.Request) (*pbinventory.Response, error) {
+func (UnimplementedBmcServiceServer) Inventory(context.Context, *pbinventory.Request) (*pbredfish.Device, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Inventory not implemented")
 }
 func (UnimplementedBmcServiceServer) ListDevices(context.Context, *Empty) (*pbredfish.Devices, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListDevices not implemented")
+}
+func (UnimplementedBmcServiceServer) SwitchLed(context.Context, *pbled.Request) (*pbredfish.Device, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SwitchLed not implemented")
 }
 func (UnimplementedBmcServiceServer) mustEmbedUnimplementedBmcServiceServer() {}
 
@@ -151,6 +166,24 @@ func _BmcService_ListDevices_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BmcService_SwitchLed_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(pbled.Request)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BmcServiceServer).SwitchLed(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/inventory.bmc.app.sdk.pbbmc.BmcService/SwitchLed",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BmcServiceServer).SwitchLed(ctx, req.(*pbled.Request))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BmcService_ServiceDesc is the grpc.ServiceDesc for BmcService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -169,6 +202,10 @@ var BmcService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListDevices",
 			Handler:    _BmcService_ListDevices_Handler,
+		},
+		{
+			MethodName: "SwitchLed",
+			Handler:    _BmcService_SwitchLed_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

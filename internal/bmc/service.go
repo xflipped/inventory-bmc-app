@@ -11,18 +11,18 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-func (b *BmcApp) inventoryService(ctx context.Context, redfishDevice db.RedfishDevice, service *gofish.Service) (redfishService db.RedfishService, err error) {
+const servicesColName = "services"
+
+func (b *BmcApp) inventoryService(ctx context.Context, redfishDevice db.RedfishDevice, service *gofish.Service) (err error) {
 	log.Infof("exec inventoryService")
 
-	const colName = "services"
-
-	redfishService = db.RedfishService{
+	redfishService := db.RedfishService{
 		DeviceId: redfishDevice.Id,
 		Service:  service,
 	}
 
 	filter := bson.D{{Key: "_device_id", Value: redfishService.DeviceId}}
-	if err = b.FindOneAndReplace(ctx, colName, filter, &redfishService); err != nil {
+	if err = b.FindOneAndReplace(ctx, servicesColName, filter, &redfishService); err != nil {
 		return
 	}
 
