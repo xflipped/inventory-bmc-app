@@ -12,10 +12,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func (b *BmcApp) ListDevices(ctx context.Context, empty *pbbmc.Empty) (devices *pbredfish.Devices, err error) {
-	const colName = "devices"
-
-	lookupService := bson.D{
+var (
+	lookupService = bson.D{
 		{"$lookup",
 			bson.D{
 				{"from", "services"},
@@ -26,7 +24,7 @@ func (b *BmcApp) ListDevices(ctx context.Context, empty *pbbmc.Empty) (devices *
 		},
 	}
 
-	lookupSystem := bson.D{
+	lookupSystem = bson.D{
 		{"$lookup",
 			bson.D{
 				{"from", "systems"},
@@ -37,7 +35,7 @@ func (b *BmcApp) ListDevices(ctx context.Context, empty *pbbmc.Empty) (devices *
 		},
 	}
 
-	lookupManager := bson.D{
+	lookupManager = bson.D{
 		{"$lookup",
 			bson.D{
 				{"from", "managers"},
@@ -48,7 +46,7 @@ func (b *BmcApp) ListDevices(ctx context.Context, empty *pbbmc.Empty) (devices *
 		},
 	}
 
-	lookupChasseez := bson.D{
+	lookupChasseez = bson.D{
 		{"$lookup",
 			bson.D{
 				{"from", "chasseez"},
@@ -59,7 +57,7 @@ func (b *BmcApp) ListDevices(ctx context.Context, empty *pbbmc.Empty) (devices *
 		},
 	}
 
-	project := bson.D{
+	project = bson.D{
 		{"$project", bson.D{
 			{"_id", 1},
 
@@ -75,13 +73,18 @@ func (b *BmcApp) ListDevices(ctx context.Context, empty *pbbmc.Empty) (devices *
 			{"vendor", bson.D{{"$first", "$service.service.vendor"}}},
 			{"power_state", bson.D{{"$first", "$manager.manager.powerstate"}}},
 			{"health_status", bson.D{{"$first", "$system.computersystem.status.health"}}},
-			{"indicator_led", bson.D{{"$first", "$system.computersystem.indicatorled"}}},
+			{"indicator_led", bson.D{{"$first", "$chassis.chassis.indicatorled"}}},
+
 			// FIXME
 			{"min_temp", bson.D{{"$first", "$manager.manager.temp"}}},
 			// FIXME
 			{"max_temp", bson.D{{"$first", "$manager.manager.temp"}}},
 		}},
 	}
+)
+
+func (b *BmcApp) ListDevices(ctx context.Context, empty *pbbmc.Empty) (devices *pbredfish.Devices, err error) {
+	const colName = "devices"
 
 	devices = &pbredfish.Devices{}
 
@@ -97,12 +100,7 @@ func (b *BmcApp) ListDevices(ctx context.Context, empty *pbbmc.Empty) (devices *
 	}
 
 	for _, result := range results {
-		device, err := result.ToProto()
-		if err != nil {
-			return devices, err
-		}
-
-		devices.Items = append(devices.Items, device)
+		devices.Items = append(devices.Items, result.ToProto())
 	}
 
 	return

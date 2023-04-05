@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/foliagecp/inventory-bmc-app/internal/db"
+	"github.com/stmcginnis/gofish/redfish"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -19,6 +21,7 @@ func main() {
 }
 
 func info(ctx context.Context) (err error) {
+	const colName = "devices"
 	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017/")
 
 	mongoClient, err := mongo.Connect(ctx, clientOptions)
@@ -32,87 +35,70 @@ func info(ctx context.Context) (err error) {
 
 	database := mongoClient.Database("bmc-app")
 
-	lookupService := bson.D{
-		{"$lookup",
-			bson.D{
-				{"from", "services"},
-				{"localField", "_id"},
-				{"foreignField", "_device_id"},
-				{"as", "service"},
+	id, _ := primitive.ObjectIDFromHex("642d31745b01bb3669de8dda")
+
+	var (
+		match = bson.D{
+			{"$match",
+				bson.D{
+					{"_id", id},
+				},
 			},
-		},
-	}
+		}
 
-	lookupSystem := bson.D{
-		{"$lookup",
-			bson.D{
-				{"from", "systems"},
-				{"localField", "service._id"},
-				{"foreignField", "_service_id"},
-				{"as", "system"},
+		lookupService = bson.D{
+			{"$lookup",
+				bson.D{
+					{"from", "services"},
+					{"localField", "_id"},
+					{"foreignField", "_device_id"},
+					{"as", "service"},
+				},
 			},
-		},
-	}
+		}
 
-	lookupManager := bson.D{
-		{"$lookup",
-			bson.D{
-				{"from", "managers"},
-				{"localField", "service._id"},
-				{"foreignField", "_service_id"},
-				{"as", "manager"},
+		lookupSystem = bson.D{
+			{"$lookup",
+				bson.D{
+					{"from", "systems"},
+					{"localField", "service._id"},
+					{"foreignField", "_service_id"},
+					{"as", "system"},
+				},
 			},
-		},
-	}
+		}
 
-	lookupChasseez := bson.D{
-		{"$lookup",
-			bson.D{
-				{"from", "chasseez"},
-				{"localField", "service._id"},
-				{"foreignField", "_service_id"},
-				{"as", "chassis"},
-			},
-		},
-	}
+		project = bson.D{
+			{"$project", bson.D{
+				{"_id", 1},
 
-	project := bson.D{
-		{"$project", bson.D{
-			{"_id", 1},
-
-			{"url", 1},
-			{"uuid", bson.D{{"$first", "$service.service.uuid"}}},
-			{"serial_number", bson.D{{"$first", "$system.computersystem.serialnumber"}}},
-			{"name", bson.D{{"$first", "$service.service.product"}}},
-
-			// FIXME
-			{"mac_address", bson.D{{"$first", "$manager.manager.mac"}}},
-
-			{"model", bson.D{{"$first", "$manager.manager.model"}}},
-			{"vendor", bson.D{{"$first", "$service.service.vendor"}}},
-			{"power_state", bson.D{{"$first", "$manager.manager.powerstate"}}},
-			{"health_status", bson.D{{"$first", "$system.computersystem.status.health"}}},
-			{"indicator_led", bson.D{{"$first", "$system.computersystem.indicatorled"}}},
-			// FIXME
-			{"min_temp", bson.D{{"$first", "$manager.manager.temp"}}},
-			// FIXME
-			{"max_temp", bson.D{{"$first", "$manager.manager.temp"}}},
-		}},
-	}
-
-	showInfoCursor, err := database.Collection("devices").Aggregate(ctx, mongo.Pipeline{lookupService, lookupSystem, lookupManager, lookupChasseez, project})
+				{"url", 1},
+				{"system", bson.D{{"$first", "$system.computersystem"}}},
+			}},
+		}
+	)
+	cur, err := database.Collection(colName).Aggregate(ctx, mongo.Pipeline{match, lookupService, lookupSystem, project})
 	if err != nil {
 		return
 	}
+	defer cur.Close(ctx)
 
-	var devices []db.RedfishDevice
-	if err = showInfoCursor.All(ctx, &devices); err != nil {
+	var s = struct {
+		Id                      primitive.ObjectID `bson:"_id,omitempty"`
+		Url                     string             `bson:"url,omitempty"`
+		*redfish.ComputerSystem `bson:"system,omitempty"`
+	}{}
+
+	if !cur.Next(ctx) {
+		err = fmt.Errorf("device not found")
 		return
 	}
 
-	for _, dev := range devices {
-		fmt.Println(dev)
+	if err = cur.Decode(&s); err != nil {
+		return
 	}
+
+	fmt.Println(s.ComputerSystem)
 
 	return
 }

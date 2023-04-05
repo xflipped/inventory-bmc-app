@@ -10,6 +10,8 @@ import (
 	"github.com/foliagecp/inventory-bmc-app/sdk/pbbmc"
 	"github.com/foliagecp/inventory-bmc-app/sdk/pbdiscovery"
 	"github.com/foliagecp/inventory-bmc-app/sdk/pbinventory"
+	"github.com/foliagecp/inventory-bmc-app/sdk/pbled"
+	"github.com/stmcginnis/gofish/common"
 )
 
 func main() {
@@ -44,6 +46,7 @@ func main() {
 		fmt.Println(err)
 		return
 	}
+	fmt.Println("listed", len(devices.GetItems()))
 
 	for _, device := range devices.GetItems() {
 		fmt.Println(device)
@@ -57,11 +60,28 @@ func main() {
 		Password: "P@ssw0rd",
 	}
 
-	response, err := client.Inventory(ctx, inventoryRequest)
+	_ = inventoryRequest
+	// response, err := client.Inventory(ctx, inventoryRequest)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// 	return
+	// }
+
+	// fmt.Println(response.GetId())
+
+	fmt.Println("led")
+
+	ledRequest := pbled.Request{
+		Id:       device.GetId(),
+		Username: "admin",
+		Password: "P@ssw0rd",
+		State:    string(common.BlinkingIndicatorLED),
+	}
+	device, err = client.SwitchLed(ctx, &ledRequest)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	fmt.Println(response.GetId())
+	fmt.Println(device)
 }

@@ -23,8 +23,8 @@ type RedfishDevice struct {
 	MaxTemp      string             `bson:"max_temp,omitempty"`
 }
 
-func (d *RedfishDevice) ToProto() (device *pbredfish.Device, err error) {
-	device = &pbredfish.Device{
+func (d *RedfishDevice) ToProto() (device *pbredfish.Device) {
+	return &pbredfish.Device{
 		Id:           d.Id.Hex(),
 		Url:          d.Url,
 		UUID:         d.UUID,
@@ -39,5 +39,4 @@ func (d *RedfishDevice) ToProto() (device *pbredfish.Device, err error) {
 		MinTemp:      d.MinTemp,
 		MaxTemp:      d.MaxTemp,
 	}
-	return
 }

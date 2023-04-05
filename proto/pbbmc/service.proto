@@ -11,6 +11,7 @@ option go_package = "github.com/foliagecp/inventory-bmc-app/sdk/pbbmc";
 import "pbredfish/pbredfish.proto";
 import "pbdiscovery/pbdiscovery.proto";
 import "pbinventory/pbinventory.proto";
+import "pbled/pbled.proto";
 
 // add offset/limit
 message Empty {}
@@ -21,4 +22,8 @@ service BmcService {
 	rpc Inventory(pbinventory.Request) returns (pbinventory.Response) {}
 	
 	rpc ListDevices(Empty) returns (pbredfish.Devices) {}
+	
+	rpc SwitchLed(pbled.Request) returns (pbredfish.Device) {}
+
+	
 }
