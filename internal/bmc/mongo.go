@@ -58,18 +58,19 @@ var (
 
 				{Key: "url", Value: 1},
 				{Key: "uuid", Value: bson.D{{Key: "$first", Value: "$service.service.uuid"}}},
-				{Key: "serial_number", Value: bson.D{{Key: "$first", Value: "$system.computersystem.serialnumber"}}},
 				{Key: "name", Value: bson.D{{Key: "$first", Value: "$service.service.product"}}},
+				{Key: "vendor", Value: bson.D{{Key: "$first", Value: "$service.service.vendor"}}},
+
+				{Key: "serial_number", Value: bson.D{{Key: "$first", Value: "$system.computersystem.serialnumber"}}},
+				{Key: "power_state", Value: bson.D{{Key: "$first", Value: "$system.computersystem.powerstate"}}},
+				{Key: "health_status", Value: bson.D{{Key: "$first", Value: "$system.computersystem.status.health"}}},
+
+				{Key: "indicator_led", Value: bson.D{{Key: "$first", Value: "$chassis.chassis.indicatorled"}}},
 
 				// FIXME
 				{Key: "mac_address", Value: bson.D{{Key: "$first", Value: "$manager.manager.mac"}}},
-
 				{Key: "model", Value: bson.D{{Key: "$first", Value: "$manager.manager.model"}}},
-				{Key: "vendor", Value: bson.D{{Key: "$first", Value: "$service.service.vendor"}}},
-				{Key: "power_state", Value: bson.D{{Key: "$first", Value: "$manager.manager.powerstate"}}},
-				{Key: "health_status", Value: bson.D{{Key: "$first", Value: "$system.computersystem.status.health"}}},
-				{Key: "indicator_led", Value: bson.D{{Key: "$first", Value: "$chassis.chassis.indicatorled"}}},
-
+				{Key: "bmc_power_state", Value: bson.D{{Key: "$first", Value: "$manager.manager.powerstate"}}},
 				// FIXME
 				{Key: "min_temp", Value: bson.D{{Key: "$first", Value: "$manager.manager.temp"}}},
 				// FIXME

@@ -7,6 +7,7 @@ import (
 	pbdiscovery "github.com/foliagecp/inventory-bmc-app/sdk/pbdiscovery"
 	pbinventory "github.com/foliagecp/inventory-bmc-app/sdk/pbinventory"
 	pbled "github.com/foliagecp/inventory-bmc-app/sdk/pbled"
+	pbpower "github.com/foliagecp/inventory-bmc-app/sdk/pbpower"
 	pbredfish "github.com/foliagecp/inventory-bmc-app/sdk/pbredfish"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
@@ -22,10 +23,12 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type BmcServiceClient interface {
+	Health(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
 	Discovery(ctx context.Context, in *pbdiscovery.Request, opts ...grpc.CallOption) (*pbredfish.Device, error)
 	Inventory(ctx context.Context, in *pbinventory.Request, opts ...grpc.CallOption) (*pbredfish.Device, error)
 	ListDevices(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*pbredfish.Devices, error)
 	SwitchLed(ctx context.Context, in *pbled.Request, opts ...grpc.CallOption) (*pbredfish.Device, error)
+	SwitchPower(ctx context.Context, in *pbpower.Request, opts ...grpc.CallOption) (*pbredfish.Device, error)
 }
 
 type bmcServiceClient struct {
@@ -34,6 +37,15 @@ type bmcServiceClient struct {
 
 func NewBmcServiceClient(cc grpc.ClientConnInterface) BmcServiceClient {
 	return &bmcServiceClient{cc}
+}
+
+func (c *bmcServiceClient) Health(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/inventory.bmc.app.sdk.pbbmc.BmcService/Health", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *bmcServiceClient) Discovery(ctx context.Context, in *pbdiscovery.Request, opts ...grpc.CallOption) (*pbredfish.Device, error) {
@@ -72,14 +84,25 @@ func (c *bmcServiceClient) SwitchLed(ctx context.Context, in *pbled.Request, opt
 	return out, nil
 }
 
+func (c *bmcServiceClient) SwitchPower(ctx context.Context, in *pbpower.Request, opts ...grpc.CallOption) (*pbredfish.Device, error) {
+	out := new(pbredfish.Device)
+	err := c.cc.Invoke(ctx, "/inventory.bmc.app.sdk.pbbmc.BmcService/SwitchPower", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BmcServiceServer is the server API for BmcService service.
 // All implementations must embed UnimplementedBmcServiceServer
 // for forward compatibility
 type BmcServiceServer interface {
+	Health(context.Context, *Empty) (*Empty, error)
 	Discovery(context.Context, *pbdiscovery.Request) (*pbredfish.Device, error)
 	Inventory(context.Context, *pbinventory.Request) (*pbredfish.Device, error)
 	ListDevices(context.Context, *Empty) (*pbredfish.Devices, error)
 	SwitchLed(context.Context, *pbled.Request) (*pbredfish.Device, error)
+	SwitchPower(context.Context, *pbpower.Request) (*pbredfish.Device, error)
 	mustEmbedUnimplementedBmcServiceServer()
 }
 
@@ -87,6 +110,9 @@ type BmcServiceServer interface {
 type UnimplementedBmcServiceServer struct {
 }
 
+func (UnimplementedBmcServiceServer) Health(context.Context, *Empty) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Health not implemented")
+}
 func (UnimplementedBmcServiceServer) Discovery(context.Context, *pbdiscovery.Request) (*pbredfish.Device, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Discovery not implemented")
 }
@@ -99,6 +125,9 @@ func (UnimplementedBmcServiceServer) ListDevices(context.Context, *Empty) (*pbre
 func (UnimplementedBmcServiceServer) SwitchLed(context.Context, *pbled.Request) (*pbredfish.Device, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SwitchLed not implemented")
 }
+func (UnimplementedBmcServiceServer) SwitchPower(context.Context, *pbpower.Request) (*pbredfish.Device, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SwitchPower not implemented")
+}
 func (UnimplementedBmcServiceServer) mustEmbedUnimplementedBmcServiceServer() {}
 
 // UnsafeBmcServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -110,6 +139,24 @@ type UnsafeBmcServiceServer interface {
 
 func RegisterBmcServiceServer(s grpc.ServiceRegistrar, srv BmcServiceServer) {
 	s.RegisterService(&BmcService_ServiceDesc, srv)
+}
+
+func _BmcService_Health_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BmcServiceServer).Health(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/inventory.bmc.app.sdk.pbbmc.BmcService/Health",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BmcServiceServer).Health(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _BmcService_Discovery_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -184,6 +231,24 @@ func _BmcService_SwitchLed_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BmcService_SwitchPower_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(pbpower.Request)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BmcServiceServer).SwitchPower(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/inventory.bmc.app.sdk.pbbmc.BmcService/SwitchPower",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BmcServiceServer).SwitchPower(ctx, req.(*pbpower.Request))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BmcService_ServiceDesc is the grpc.ServiceDesc for BmcService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -191,6 +256,10 @@ var BmcService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "inventory.bmc.app.sdk.pbbmc.BmcService",
 	HandlerType: (*BmcServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Health",
+			Handler:    _BmcService_Health_Handler,
+		},
 		{
 			MethodName: "Discovery",
 			Handler:    _BmcService_Discovery_Handler,
@@ -206,6 +275,10 @@ var BmcService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SwitchLed",
 			Handler:    _BmcService_SwitchLed_Handler,
+		},
+		{
+			MethodName: "SwitchPower",
+			Handler:    _BmcService_SwitchPower_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

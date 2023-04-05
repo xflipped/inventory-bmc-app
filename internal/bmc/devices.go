@@ -17,7 +17,6 @@ const devicesColName = "devices"
 var errDeviceNotFound = fmt.Errorf("device not found")
 
 func (b *BmcApp) ListDevices(ctx context.Context, empty *pbbmc.Empty) (devices *pbredfish.Devices, err error) {
-
 	cur, err := b.database.Collection(devicesColName).Aggregate(ctx, mongo.Pipeline{lookupService, lookupSystem, lookupManager, lookupChasseez, project})
 	if err != nil {
 		return
