@@ -37,7 +37,7 @@ func (b *BmcApp) inventorySystem(ctx context.Context, redfishService db.RedfishS
 		ComputerSystem: computerSystem,
 	}
 
-	filter := bson.D{{"_service_id", redfishSystem.ServiceId}}
+	filter := bson.D{{Key: "_service_id", Value: redfishSystem.ServiceId}}
 	if err = b.FindOneAndReplace(ctx, colName, filter, &redfishSystem); err != nil {
 		return
 	}
@@ -63,6 +63,6 @@ func (b *BmcApp) inventoryBIOS(ctx context.Context, redfishSystem db.RedfishSyst
 		Bios:     bios,
 	}
 
-	filter := bson.D{{"_system_id", redfishBIOS.SystemId}}
+	filter := bson.D{{Key: "_system_id", Value: redfishBIOS.SystemId}}
 	return b.FindOneAndReplace(ctx, colName, filter, &redfishBIOS)
 }

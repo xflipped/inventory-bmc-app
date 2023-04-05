@@ -25,7 +25,7 @@ func (b *BmcApp) Inventory(ctx context.Context, request *pbinventory.Request) (r
 
 	collection := b.database.Collection(colName)
 
-	filter := bson.D{{"_id", id}}
+	filter := bson.D{{Key: "_id", Value: id}}
 
 	singleResult := collection.FindOne(ctx, filter)
 	if err = singleResult.Err(); err != nil {

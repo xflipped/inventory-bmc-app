@@ -55,7 +55,7 @@ func (b *BmcApp) Discovery(ctx context.Context, request *pbdiscovery.Request) (d
 		UUID: gofishService.UUID,
 	}
 
-	filter := bson.D{{"UUID", redfishDevice.UUID}}
+	filter := bson.D{{Key: "UUID", Value: redfishDevice.UUID}}
 	if err = b.FindOneAndReplace(ctx, colName, filter, &redfishDevice); err != nil {
 		return
 	}
