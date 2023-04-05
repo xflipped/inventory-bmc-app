@@ -29,7 +29,7 @@ func main() {
 
 	fmt.Println("discovery")
 
-	ctx2, _ := context.WithTimeout(ctx, time.Second*5)
+	ctx2, _ := context.WithTimeout(ctx, time.Second*5) // nolint
 
 	device, err := client.Discovery(ctx2, "https://192.168.77.102/")
 	if err != nil {
