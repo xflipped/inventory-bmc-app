@@ -1,0 +1,32 @@
+/*
+ *  Copyright 2023 NJWS Inc.
+ */
+
+syntax = "proto3";
+
+package inventory.bmc.app.sdk.pbredfish;
+
+option go_package = "github.com/foliagecp/inventory-bmc-app/sdk/pbredfish";
+
+message Device {
+	string id = 1;
+	
+    string url = 2;
+    string UUID = 3;
+    string serial_number = 4;
+    string name = 5;
+    string mac_address = 6;
+    string model = 7;
+    string vendor = 8;
+    string power_state = 9; 
+    string bmc_power_state = 10; 
+    string health_status = 11;
+    string indicator_led = 12;
+    string min_temp = 13;
+    string max_temp = 14;
+
+}
+
+message Devices {
+    repeated Device items = 1;
+}

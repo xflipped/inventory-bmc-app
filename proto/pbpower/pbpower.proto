@@ -1,0 +1,16 @@
+/*
+ *  Copyright 2023 NJWS Inc.
+ */
+
+syntax = "proto3";
+
+package inventory.bmc.app.sdk.pbpower;
+
+option go_package = "github.com/foliagecp/inventory-bmc-app/sdk/pbpower";
+
+message Request {
+    string id = 1;
+    string username = 2;
+    string password = 3;
+    string type = 4;
+}
