@@ -45,6 +45,7 @@ func (b *BmcApp) inventoryManager(ctx context.Context, redfishService db.Redfish
 	p.Exec(func() error { return b.inventoryManagerEthernetInterfaces(ctx, redfishManager) })
 	p.Exec(func() error { return b.inventoryHostInterfaces(ctx, redfishManager) })
 	p.Exec(func() error { return b.inventoryVirtualMedias(ctx, redfishManager) })
+	p.Exec(func() error { return b.inventoryNetworkProtocol(ctx, redfishManager) })
 
 	// p.Exec(func() error { return b.inventoryManagerLogServices(ctx, redfishManager) })
 
@@ -151,4 +152,23 @@ func (b *BmcApp) inventoryVirtualMedia(ctx context.Context, redfishManager db.Re
 	}
 
 	return
+}
+
+func (b *BmcApp) inventoryNetworkProtocol(ctx context.Context, redfishManager db.RedfishManager) (err error) {
+	log.Infof("exec inventoryNetworkProtocol")
+
+	const colName = "networkProtocols"
+
+	networkProtocol, err := redfishManager.NetworkProtocol()
+	if err != nil {
+		return
+	}
+
+	redfishNetworkProtocol := db.RedfishNetworkProtocol{
+		ManagerId:               redfishManager.Id,
+		NetworkProtocolSettings: networkProtocol,
+	}
+
+	filter := bson.D{{Key: "_manager_id", Value: redfishNetworkProtocol.ManagerId}}
+	return b.FindOneAndReplace(ctx, colName, filter, &redfishNetworkProtocol)
 }

@@ -18,7 +18,7 @@ require (
 	github.com/koron/go-ssdp v0.0.3
 	github.com/manifoldco/promptui v0.9.0
 	github.com/sirupsen/logrus v1.9.0
-	github.com/stmcginnis/gofish v0.14.1-0.20230404133511-f48993cacd3d
+	github.com/stmcginnis/gofish v0.14.1-0.20230406231140-da46c1326ae9
 	github.com/urfave/cli/v2 v2.24.3
 	go.mongodb.org/mongo-driver v1.11.3
 	go.uber.org/goleak v1.2.0
